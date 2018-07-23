@@ -1,4 +1,4 @@
-# rock4
+# Rock4Test
 
 **[rock4automation项目](https://github.com/RockFeng0/rock4automation)痛点**
 - 集成了 http测试,web UI测试，PC MFC UI测试，PC WPF UI测试，但实际上，QA或者测试人员，可能只需要http相关的api测试，却不得不将整个项目下载安装
@@ -20,13 +20,8 @@
 
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
 
-计划用例模板，为两个区域快:
-- project区域快： name-待测系统的名称，module-测试集名称（一个文件就一个测试集合， 目前，还不支持测试套件的嵌套）
-- case区域块：必填(id-测试用例id,desc-测试用例的描述,steps-测试步骤,verify-校验),选填(responsible-测试责任人,tester-测试执行人,pre_command-测试前置条件(前置钩子),post_command-测试后置条件(后置钩子))
-- case区域块中，steps，计划分别支持(request-http测试，webdriver-web UI测试，mobiledriver-移动端app测试，wpfdriver-使用wpf技术的pc客户端测试，mfcdriver-使用mfc技术的pc客户端测试)
 
-
-```
+```# yaml测试用例，模型示例:
 - project:
     name: xxx系统
     module: 登陆模块-功能测试
@@ -66,6 +61,11 @@
     verify:
         - VerifyCode("200")
 ```
+
+模型解释:
+- project: name->待测系统的名称; module->测试集名称（一个文件就一个测试集合， 目前，还不支持测试套件的嵌套）
+- case: 必填(id->测试用例id; desc->测试用例的描述;steps->测试步骤;verify->校验),选填(responsible->测试责任人;tester->测试执行人;pre_command->测试前置条件(前置钩子);post_command->测试后置条件(后置钩子))
+- case-steps: request->http测试; webdriver->web UI测试; mobiledriver->移动端app测试;wpfdriver->使用wpf技术的pc客户端测试;mfcdriver->使用mfc技术的pc客户端测试)
 
 ## 测试执行方法
 
