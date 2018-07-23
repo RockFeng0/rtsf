@@ -18,10 +18,10 @@ Provide a function for the automation test
 
 '''
 
-__title__           = "httpdriver"
+__title__           = "rock4"
 __version__         = 2.0
 __autor__           = u"罗科峰"
 __author_email__    = "lkf20031988@163.com"
 __license__         = 'MIT'
 
-HOME_PAGE           = "https://github.com/RockFeng0/httpdriver"
+HOME_PAGE           = "https://github.com/RockFeng0/Rock4Test"
