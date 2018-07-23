@@ -1,0 +1,31 @@
+﻿-
+    TestCaseID: test-1
+    Description: a new test
+    GlobVar:
+        test_var: ${test_func()}        
+        passwd: "!@#$%^&*("
+    GlobRegx:
+        rex_html_xml: 'name="lt" value="([\w\-\.\+/=]+)'
+    PreCommand:
+        - ${GetVar(test_var)}
+        - ${GetVar(rex_html_xml)}
+        - ${SetVar(url,www.baidu.com)}
+    Steps:
+        - request:
+            url: http://$url
+            head:
+            data:
+            method: GET
+    PostCommand:
+        - ${DyJsonData(sequence1, a)}
+        - ${GetVar(sequence1)}
+        - ${DyJsonData(sequence2, b.3)}
+        - ${GetVar(sequence2)}
+        - ${DyJsonData(sequence3, f.g.2)}
+        - ${GetVar(sequence3)}
+        - ${DyJsonData(sequence4, h.0.j)}
+        - ${GetVar(sequence4)}
+        - ${test_func()}
+    Verify:
+        - ${VerifyCode(200)}
+        
