@@ -147,11 +147,11 @@ class Runner(object):
     def run_test(self, testcase_dict):
         ''' please override '''
         reporter = self.tracer
-        reporter.start(self.proj_info["module"], testcase_dict.get("name",'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester","rock feng"))
-        reporter.log_debug("===== run_test\n\t{}".format(testcase_dict))
+        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
         
-        reporter.section("------------section ok")
-        reporter.step("step ok")
-        reporter.normal("normal ok")
+        reporter.section(u"------------section ok")
+        reporter.step(u"step ok")
+        reporter.normal(u"normal ok")
         reporter.stop()        
         

@@ -32,8 +32,8 @@ class Tracer(HtmlReporter, AppLog):
         
     
     def start(self,module_name, case_name, resp_tester, tester):
-        self.start_test(module_name, case_name, resp_tester, tester)
-        self.log_info("-------\n\t#### Starting test {}: {} {} {}".format(module_name, case_name, resp_tester, tester))
+        self.start_test(module_name, case_name, resp_tester, tester)        
+        self.log_info(u"-------\n\t#### Starting test {}: {} {} {}".format(module_name, case_name, resp_tester, tester))
     
              
     def section(self,strs):        
@@ -68,8 +68,7 @@ class Tracer(HtmlReporter, AppLog):
     
     def stop(self):
         self.stop_test()
-        self.log_info("Stopped.")
-        self.log_info("\n\t## Stopped test")
+        self.log_info(u"\n\t## Stopped test")
         
     def __deal_str(self,strs):
         if isinstance(strs, str):
