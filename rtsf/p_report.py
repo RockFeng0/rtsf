@@ -53,7 +53,7 @@ class HtmlReporter(object):
         
         log_file = self.__get_log_file()
         with codecs.open(log_file, "a", "utf-8") as f:
-            f.write(u"\n**************  %s [%s]  ***************\n" %(u"Case Log From Http Driver",self.meta_data['case_name']))
+            f.write(u"\n**************  %s [%s]  ***************\n" %(u"Case Log From Rock4 Test Service Framework",self.meta_data['case_name']))
     
     def stop_test(self):
         self.meta_data["end_at"] = time.time()

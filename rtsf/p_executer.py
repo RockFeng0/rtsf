@@ -150,8 +150,8 @@ class Runner(object):
         reporter.start(self.proj_info["module"], testcase_dict.get("name",'用例没找到name'), testcase_dict.get("responsible","张三"), testcase_dict.get("tester","李四"))
         reporter.log_debug("===== run_test\n\t{}".format(testcase_dict))
         
-        reporter.section("------------test_1")
-        reporter.step("step1")
-        reporter.normal("normal1")
+        reporter.section("------------section ok")
+        reporter.step("step ok")
+        reporter.normal("normal ok")
         reporter.stop()        
         
