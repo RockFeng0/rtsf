@@ -26,6 +26,7 @@ install_requires = [
     "Jinja2",
     "colorama",
     "colorlog",
+    "urllib3",
 ]
 
 setup(

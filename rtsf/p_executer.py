@@ -147,7 +147,7 @@ class Runner(object):
     def run_test(self, testcase_dict):
         ''' please override '''
         reporter = self.tracer
-        reporter.start(self.proj_info["module"], testcase_dict.get("name",'用例没找到name'), testcase_dict.get("responsible","张三"), testcase_dict.get("tester","李四"))
+        reporter.start(self.proj_info["module"], testcase_dict.get("name",'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester","rock feng"))
         reporter.log_debug("===== run_test\n\t{}".format(testcase_dict))
         
         reporter.section("------------section ok")
