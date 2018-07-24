@@ -18,7 +18,7 @@ Provide a function for the automation test
 
 '''
 
-from rock4 import __about__
+from rock4.common import __about__
 from setuptools import find_packages, setup
 
 install_requires = [
