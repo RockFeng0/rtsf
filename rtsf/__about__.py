@@ -24,4 +24,4 @@ __autor__           = u"罗科峰"
 __author_email__    = "lkf20031988@163.com"
 __license__         = 'MIT'
 
-HOME_PAGE           = "https://github.com/RockFeng0/Rock4Test"
+HOME_PAGE           = "https://github.com/RockFeng0/rtsf"

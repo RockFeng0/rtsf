@@ -25,6 +25,7 @@ from jinja2 import Template
 from rtsf import p_compat
 from rtsf.p_applog import logger
 from rtsf.p_common import FileSystemUtils,DateTimeUtils
+from rtsf import __about__
 
 class HtmlReporter(object):
     def __init__(self,device_id="", dir_name = ''):       
@@ -120,14 +121,14 @@ class HtmlReporter(object):
                 home_page:   home page url
         
         '''
-        all_summary = []       
+        all_summary = []
                
         for module in list_all:
             summary = {
                         "module_name" : module['Name'],
                         "show_all" : kwargs.get("show_all",True),
                         "project_name" : kwargs.get("proj_name","TestProject"),
-                        "home_page" : kwargs.get("home_page","http://localhost/index.html"),
+                        "home_page" : kwargs.get("home_page",__about__.HOME_PAGE),
                         "start_time" : "",
                         "end_time" : "",
                         "duration_seconds" : "",
