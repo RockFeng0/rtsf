@@ -1,7 +1,7 @@
 #! python3
 # -*- encoding: utf-8 -*-
 '''
-Current module: rock4.common.tests.test_p_executer
+Current module: rtsf.tests.test_p_executer
 
 Rough version history:
 v1.0    Original version to use
@@ -9,7 +9,7 @@ v1.0    Original version to use
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:     luokefeng@163.com
-    RCS:      rock4.common.tests.test_p_executer,  v1.0 2018年7月19日
+    RCS:      rtsf.tests.test_p_executer,  v1.0 2018年7月19日
     FROM:   2018年7月19日
 ********************************************************************
 ======================================================================
@@ -19,9 +19,9 @@ Provide a function for the automation test
 '''
 
 import unittest,os
-from rock4.common.p_executer import TestRunner,Runner
-from rock4.common.p_report import HtmlReporter
-from rock4.common.p_testcase import TestCaseParser
+from rtsf.p_executer import TestRunner,Runner
+from rtsf.p_report import HtmlReporter
+from rtsf.p_testcase import TestCaseParser
 
 
 class TestTestRunner(unittest.TestCase):

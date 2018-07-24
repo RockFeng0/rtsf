@@ -8,7 +8,7 @@ v2.0    define some normal functions for this module which act as Log Center
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com    
-    RCS:      rock4.common.p_applog,v 2.0 2017年2月7日
+    RCS:      rtsf.p_applog,v 2.0 2017年2月7日
     FROM:     2015年4月14日
 ********************************************************************
             
@@ -23,7 +23,7 @@ from colorama import Back, Fore, Style, init
 from colorlog import ColoredFormatter
 init(autoreset=True)
 
-from rock4.common import p_exception
+from rtsf import p_exception
 
 
 def coloring(msg, color="WHITE"):

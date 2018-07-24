@@ -18,15 +18,15 @@ Provide a function for the automation test
 
 '''
 
-from rock4.common.p_common import CommonUtils
-from rock4.common.p_common import FileSystemUtils
-from rock4.common.p_common import IntelligentWaitUtils
-from rock4.common.p_common import DateTimeUtils
-from rock4.common.p_common import ZipUtils
-from rock4.common.p_common import ModuleUtils
-from rock4.common.p_common import SetupUtils
-from rock4.common.p_common import ProgressBarUtils
-from rock4.common import p_compat
+from rtsf.p_common import CommonUtils
+from rtsf.p_common import FileSystemUtils
+from rtsf.p_common import IntelligentWaitUtils
+from rtsf.p_common import DateTimeUtils
+from rtsf.p_common import ZipUtils
+from rtsf.p_common import ModuleUtils
+from rtsf.p_common import SetupUtils
+from rtsf.p_common import ProgressBarUtils
+from rtsf import p_compat
 
 import unittest,os,time
 import shutil

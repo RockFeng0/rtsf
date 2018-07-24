@@ -18,7 +18,7 @@ Provide a function for the automation test
 
 '''
 
-from rock4.common import __about__
+from rtsf import __about__
 from setuptools import find_packages, setup
 
 install_requires = [
@@ -29,7 +29,7 @@ install_requires = [
 setup(
     name=__about__.__title__,
     version=__about__.__version__,
-    description='basic test framwork for test',
+    description=__about__.__short_desc__,
     author=__about__.__autor__,
     author_email=__about__.__author_email__,
     url=__about__.HOME_PAGE,

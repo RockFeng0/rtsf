@@ -20,8 +20,8 @@ UI and Web Http automation frame for python.
 '''
 
 
-from rock4.common.p_report import HtmlReporter
-from rock4.common.p_applog import AppLog
+from rtsf.p_report import HtmlReporter
+from rtsf.p_applog import AppLog
 
 
 class Tracer(HtmlReporter, AppLog):

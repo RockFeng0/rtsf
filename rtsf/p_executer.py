@@ -8,7 +8,7 @@ v1.1    add 'launch_mobile' function
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com    
-    RCS:     rock4.common.p_executer,v 2.0 2017年2月7日
+    RCS:     rtsf.p_executer,v 2.0 2017年2月7日
     FROM:   2015年5月11日
 ********************************************************************
 
@@ -20,10 +20,10 @@ UI and Web Http automation frame for python.
 
 
 import unittest,sys,os
-from rock4.common.p_applog import logger
-from rock4.common.p_tracer import Tracer
-from rock4.common.p_testcase import YamlCaseLoader
-from rock4.common import p_testcase, p_compat,p_exception
+from rtsf.p_applog import logger
+from rtsf.p_tracer import Tracer
+from rtsf.p_testcase import YamlCaseLoader
+from rtsf import p_testcase, p_compat,p_exception
 
 class TestCase(unittest.TestCase):
     """ create a testcase.

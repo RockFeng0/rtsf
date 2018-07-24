@@ -1,7 +1,7 @@
 #! python3
 # -*- encoding: utf-8 -*-
 '''
-Current module: rock4.common.p_yaml_cases
+Current module: rtsf.p_yaml_cases
 
 Rough version history:
 v1.0    Original version to use
@@ -9,7 +9,7 @@ v1.0    Original version to use
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com
-    RCS:      rock4.common.p_yaml_cases,v 1.0 2018年7月14日
+    RCS:      rtsf.p_testcase,v 1.0 2018年7月14日
     FROM:   2018年7月14日
 ********************************************************************
 
@@ -21,9 +21,9 @@ UI and Web Http automation frame for python.
 import yaml
 import json
 import os,re,io,ast
-from rock4.common.p_applog import logger
-from rock4.common import p_exception,p_compat
-from rock4.common.p_common import FileSystemUtils,CommonUtils,ModuleUtils
+from rtsf.p_applog import logger
+from rtsf import p_exception,p_compat
+from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils
 
 
 variable_regexp = r"\$([\w_]+)"

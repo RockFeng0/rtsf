@@ -13,7 +13,7 @@ v4.0    classify with  @staticmethod
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com
-    RCS:    rock4.common.p_common,v 4.0 2018年7月14日
+    RCS:    rtsf.p_common,v 4.0 2018年7月14日
     FROM:   2015年4月14日
 ********************************************************************
             
@@ -40,7 +40,7 @@ import hashlib
 import socket
 import random
 import string
-from rock4.common import p_compat, p_exception
+from rtsf import p_compat, p_exception
 from collections import OrderedDict
 
 ConfigParser = p_compat.ConfigParser

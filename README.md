@@ -1,13 +1,13 @@
-# Rock4Test
+# rtsf(rock4 test service framework)
 
 **[rock4automation项目](https://github.com/RockFeng0/rock4automation)痛点**
 - 集成了 http测试,web UI测试，PC MFC UI测试，PC WPF UI测试，但实际上，QA或者测试人员，可能只需要http相关的api测试，却不得不将整个项目下载安装
 - rock4automation项目,打包发布的程序，会将源码封装了exe或者加密为pyd；
 - rock4automation项目,打包了相关工具，比如appium-server，java.exe 等等，大量冗余的，非项目源码的工具
 
-**Rock4Test项目的目标**
+**rtsf项目的目标**
 - 可扩展，用于打造一个基本的测试服务框架,也许以后可以基于RPC，但是，目前，还只是一个可扩展的模块包
-- 精简，拆分业务测试相关的功能、测试框架应有的基础功能、其他工具不再整合，Rock4Test项目，就是其中的基础功能
+- 精简，拆分业务测试相关的功能、测试框架应有的基础功能、其他工具不再整合，rtsf项目，就是其中的基础功能
 - 自成一体的执行逻辑，(yaml/excel/xml)测试用例->测试执行->跟踪日志->测试报告
 
 ## 测试用例模型

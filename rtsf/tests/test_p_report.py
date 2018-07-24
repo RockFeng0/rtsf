@@ -1,7 +1,7 @@
 #! python3
 # -*- encoding: utf-8 -*-
 '''
-Current module: rock4.common.tests.test_p_report
+Current module: rtsf.tests.test_p_report
 
 Rough version history:
 v1.0    Original version to use
@@ -9,7 +9,7 @@ v1.0    Original version to use
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:     luokefeng@163.com
-    RCS:      rock4.common.tests.test_p_report,  v1.0 2018年7月18日
+    RCS:      rtsf.tests.test_p_report,  v1.0 2018年7月18日
     FROM:   2018年7月18日
 ********************************************************************
 ======================================================================
@@ -20,7 +20,7 @@ Provide a function for the automation test
 
 
 import unittest, time
-from rock4.common.p_report import HtmlReporter
+from rtsf.p_report import HtmlReporter
 
 class TestHtmlReport(unittest.TestCase):    
         

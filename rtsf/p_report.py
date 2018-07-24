@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 '''
-Current module: rock4.common.p_report2
+Current module: rtsf.p_report2
 
 Rough version history:
 v1.0    Original version to use
@@ -9,7 +9,7 @@ v2.0    整合了跟踪日志和报告模块，跟踪记录执行步骤，记录
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com
-    RCS:      rock4.common.p_report2,v 2.0 2018年7月18日
+    RCS:      rtsf.p_report2,v 2.0 2018年7月18日
     FROM:   2017年2月14日
 ********************************************************************
 
@@ -22,9 +22,9 @@ UI and Web Http automation frame for python.
 
 import os,time,codecs,io
 from jinja2 import Template
-from rock4.common import p_compat
-from rock4.common.p_applog import logger
-from rock4.common.p_common import FileSystemUtils,DateTimeUtils
+from rtsf import p_compat
+from rtsf.p_applog import logger
+from rtsf.p_common import FileSystemUtils,DateTimeUtils
 
 class HtmlReporter(object):
     def __init__(self,device_id="", dir_name = ''):       

@@ -19,7 +19,7 @@ Provide a function for the automation test
 '''
 
 import unittest,os
-from rock4.common.p_tracer import Tracer
+from rtsf.p_tracer import Tracer
 
 class TestTracer(unittest.TestCase):
     

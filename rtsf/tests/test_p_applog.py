@@ -19,7 +19,7 @@ Provide a function for the automation test
 '''
 
 import unittest, os
-from rock4.common.p_applog import AppLog,color_print
+from rtsf.p_applog import AppLog,color_print
 
 class TestAppLog(unittest.TestCase):
     
