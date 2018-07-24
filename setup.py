@@ -24,6 +24,8 @@ from setuptools import find_packages, setup
 install_requires = [
     "PyYAML",
     "Jinja2",
+    "colorama",
+    "colorlog",
 ]
 
 setup(
