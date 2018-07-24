@@ -22,7 +22,8 @@
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
 
 
-```# yaml测试用例，模型示例:
+```
+# yaml测试用例，模型示例:
 - project:
     name: xxx系统
     module: 登陆模块-功能测试
@@ -149,7 +150,7 @@ print(html_report)
 
 > 自定义run_test，编写测试用例的执行过程
 
- 注意: 重写的时候，第一个参数，是单个case，不是所有case，** 只需要写一个case的执行逻辑 **； 重写好 run_test是使用rtsf的主要工作。
+ 注意: 重写的时候，第一个参数，是单个case，不是所有case，**只需要写一个case的执行逻辑**； 重写好 run_test是使用rtsf的主要工作。
 
 ```
 from rtsf.p_executer import Runner
