@@ -67,7 +67,7 @@ class TestSuite(unittest.TestSuite):
     def __init__(self, testset, test_runner):
         super(TestSuite, self).__init__()
         
-        test_runner.init_runner(p_testcase.TestCaseParser(), testset)
+        test_runner.init_runner(p_testcase.TestCaseParser(file_path=testset.get("file_path")), testset)
         
         testcases = testset.get("cases", [])
         for testcase_dict in testcases:
