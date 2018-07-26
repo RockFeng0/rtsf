@@ -19,7 +19,7 @@ Provide a function for the automation test
 '''
 __title__           = "rtsf"
 __short_desc__      = "rock4 test service framework"
-__version__         = 2.3
+__version__         = 2.4
 __autor__           = u"罗科峰"
 __author_email__    = "lkf20031988@163.com"
 __license__         = 'MIT'
