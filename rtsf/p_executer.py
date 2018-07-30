@@ -64,10 +64,15 @@ class TestSuite(unittest.TestSuite):
                 ]
             }
     """
-    def __init__(self, testset, test_runner):
+    def __init__(self, testset, runner_cls):
         super(TestSuite, self).__init__()
         
-        test_runner.init_runner(p_testcase.TestCaseParser(file_path=testset.get("file_path")), testset)
+        file_path = testset.get("file_path")
+        self.test_runner = test_runner = runner_cls()
+        test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
+                                tracer = Tracer(dir_name = os.path.dirname(os.path.abspath(file_path))),
+                                projinfo = testset.get("project")
+                                )
         
         testcases = testset.get("cases", [])
         for testcase_dict in testcases:
@@ -82,15 +87,61 @@ class TestSuite(unittest.TestSuite):
 
         test = TestCase(test_runner, testcase_dict)
         [self.addTest(test) for _ in range(int(testcase_dict.get("times", 1)))]
+    
+    @property
+    def tests(self):
+        return self._tests
    
+class TaskSuite(unittest.TestSuite):
+    """ create task suite with specified testcase path.
+        each task suite may include one or several test suite.
+    """
+    def __init__(self, testsets, runner_cls):
+        """
+        @params
+            testsets (dict/list): testset or list of testset
+                testset_dict
+                or
+                [
+                    testset_dict_1,
+                    testset_dict_2,
+                    {
+                        "name": "desc1",
+                        "config": {},
+                        "api": {},
+                        "testcases": [testcase11, testcase12]
+                    }
+                ]
+            mapping (dict):
+                passed in variables mapping, it will override variables in config block
+        """
+        super(TaskSuite, self).__init__()
 
-def init_test_suitee(path_or_testsets, test_runner):
-    if not p_testcase.is_testsets(path_or_testsets):        
-        testsets = YamlCaseLoader.load_file(path_or_testsets)
+        if not testsets:
+            raise p_exception.TestcaseNotFound
+
+        if isinstance(testsets, dict):
+            testsets = [testsets]
+        
+        self.suite_list = []
+        for testset in testsets:
+            suite = TestSuite(testset, runner_cls)
+            self.addTest(suite)
+            self.suite_list.append(suite)
+
+    @property
+    def tasks(self):
+        return self.suite_list
+
+
+def init_test_suite(path_or_testsets, runner_cls):
+    if not p_testcase.is_testsets(path_or_testsets):
+        YamlCaseLoader.load_dependencies(path_or_testsets)        
+        testsets = YamlCaseLoader.load_files(path_or_testsets)
     else:
         testsets = path_or_testsets
 
-    return TestSuite(testsets, test_runner)
+    return TaskSuite(testsets, runner_cls)
 
 class TestRunner(object):
 
@@ -98,11 +149,12 @@ class TestRunner(object):
         """ initialize test runner
         @param (dict) kwargs: key-value arguments used to initialize TextTestRunner            
         """
-        test_runner = kwargs.pop("runner", Runner())
-        if not isinstance(test_runner, Runner):
+        runner_cls = kwargs.pop("runner", Runner)
+        
+        if not callable(runner_cls) and not isinstance(runner_cls(), Runner):
             raise p_exception.InstanceTypeError("Invalid runner, must be instance of Runner.")
         
-        self.test_runner = test_runner
+        self._runner_cls = runner_cls
         self.runner = unittest.TextTestRunner(**kwargs)
 
     def run(self, path_or_testsets):
@@ -122,27 +174,29 @@ class TestRunner(object):
         """
                 
         try:
-            task_suite =init_test_suitee(path_or_testsets, self.test_runner)
+            self._task_suite =init_test_suite(path_or_testsets, self._runner_cls)
         except p_exception.TestcaseNotFound:
             logger.log_error("Testcases not found in {}".format(path_or_testsets))
             sys.exit(1)
 
-        self.text_test_result = self.runner.run(task_suite)        
+        self.text_test_result = self.runner.run(self._task_suite)        
         return self
     
     def gen_html_report(self):
-        reporter = self.test_runner.tracer
-        return reporter.generate_html_report(self.test_runner.proj_info["module"])
+        html_report = []
+        for suite in self._task_suite.tasks:
+            reporter = suite.test_runner.tracer
         
+            proj_name = suite.test_runner.proj_info["name"]
+            html_report.extend(reporter.generate_html_report(proj_name, proj_module=None))
+        return html_report        
         
 class Runner(object):
-        
-    def init_runner(self,parser, test_set):
+       
+    def init_runner(self, parser, tracer, projinfo):
         self.parser = parser
-        self.proj_info = test_set.get("project")
-        
-        dir_name = test_set.get("file_path", "")
-        self.tracer = Tracer(dir_name = os.path.dirname(os.path.abspath(dir_name)) if dir_name else dir_name)
+        self.tracer = tracer
+        self.proj_info = projinfo        
         
     def run_test(self, testcase_dict):
         ''' please override '''
@@ -153,5 +207,4 @@ class Runner(object):
         reporter.section(u"------------section ok")
         reporter.step(u"step ok")
         reporter.normal(u"normal ok")
-        reporter.stop()        
-        
+        reporter.stop()

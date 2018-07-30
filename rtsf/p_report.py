@@ -89,27 +89,39 @@ class HtmlReporter(object):
             FileSystemUtils.mkdirs(self.case_log_path)
         return log_file 
 
-    def generate_html_report(self, module_name):      
-        html_report_template = os.path.join(os.path.abspath(os.path.dirname(__file__)),"templates","default_report_template.html")
-        html_report = os.path.join(self.result_path,"{}.html".format(DateTimeUtils.get_stamp_datetime_coherent()))
-        all_summary = HtmlReporter.get_summary(self.summary)
+    def generate_html_report(self, proj_name, proj_module = None):
+        html_results = []               
+        all_summary = HtmlReporter.get_summary(self.summary, proj_name = proj_name)
         
         for summary in all_summary:
-            if summary["module_name"] == module_name:
+            html_report = os.path.join(self.result_path, "[{}]{}_{}.html".format(FileSystemUtils.get_legal_filename(summary["project_name"]),
+                                                                                    FileSystemUtils.get_legal_filename(summary["module_name"]), 
+                                                                                DateTimeUtils.get_stamp_datetime_coherent(),
+                                                                                ))        
+            if proj_module == None:                
+                html_results.append(HtmlReporter.render_html(html_report, summary))
+                
+            elif summary["module_name"] == proj_module:
+                html_results.append(HtmlReporter.render_html(html_report, summary))
                 break
             else:
                 summary = {}
+        return html_results
+    
+    @staticmethod
+    def render_html(report_file_path, summary):
+        html_report_template = os.path.join(os.path.abspath(os.path.dirname(__file__)),"templates","default_report_template.html")
         
         with io.open(html_report_template, "r", encoding='utf-8') as f_r:
             template_content = f_r.read()            
-            with io.open(html_report, 'w', encoding='utf-8') as f_w:
+            with io.open(report_file_path, 'w', encoding='utf-8') as f_w:
                 rendered_content = Template(template_content).render(summary)            
                 f_w.write(rendered_content)
-            
-        with open(os.path.join(self.result_path,'result.json'), 'w') as f:
-            f.write(str(summary.get("dict_report","")))
         
-        return html_report
+#         with open(os.path.join(os.path.dirname(report_file_path),'result.json'), 'w') as f:
+#             f.write(str(summary.get("dict_report","")))
+        
+        return report_file_path
     
     @staticmethod
     def get_summary(list_all=[], **kwargs):

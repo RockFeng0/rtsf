@@ -24,6 +24,7 @@ import os,re,io,ast
 from rtsf.p_applog import logger
 from rtsf import p_exception,p_compat
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils
+from rtsf.p_compat import numeric_types
 
 
 variable_regexp = r"\$([\w_]+)"
@@ -115,6 +116,59 @@ def parse_function(content):
             function_meta["args"].append(parse_string_value(arg))
 
     return function_meta
+
+def substitute_variables_with_mapping(content, mapping):
+    """ substitute variables in content with mapping
+    e.g.
+    @params
+        content = {
+            'request': {
+                'url': '/api/users/$uid',
+                'headers': {'token': '$token'}
+            }
+        }
+        mapping = {"$uid": 1000}
+    @return
+        {
+            'request': {
+                'url': '/api/users/1000',
+                'headers': {'token': '$token'}
+            }
+        }
+    """
+    if isinstance(content, bool):
+        return content
+
+    if isinstance(content, (numeric_types, type)):
+        return content
+
+    if not content:
+        return content
+
+    if isinstance(content, (list, set, tuple)):
+        return [
+            substitute_variables_with_mapping(item, mapping)
+            for item in content
+        ]
+
+    if isinstance(content, dict):
+        substituted_data = {}
+        for key, value in content.items():
+            eval_key = substitute_variables_with_mapping(key, mapping)
+            eval_value = substitute_variables_with_mapping(value, mapping)
+            substituted_data[eval_key] = eval_value
+
+        return substituted_data
+
+    # content is in string format here
+    for var, value in mapping.items():
+        if content == var:
+            # content is a variable
+            content = value
+        else:
+            content = content.replace(var, str(value))
+
+    return content
 
 class TestCaseParser(object):
 #     def __init__(self, action_class_name, preference_action_file):        
@@ -329,9 +383,52 @@ class Yaml(object):
             logger.log_warning(err_msg)
             return []
 
+    @staticmethod
+    def load_folder_files(folder_path, recursive=True):
+        """ load folder path, return all files in list format.
+        @param
+            folder_path: specified folder path to load
+            recursive: if True, will load files recursively
+        @return: 
+             all yaml files or json files with relative path in list format 
+        """
+        if isinstance(folder_path, (list, set)):
+            files = []
+            for path in set(folder_path):
+                files.extend(Yaml.load_folder_files(path, recursive))
 
+            return files
 
-class YamlCaseLoader(object):            
+        if not os.path.exists(folder_path):
+            return []
+
+        file_list = []
+
+        for dirpath, dirnames, filenames in os.walk(folder_path):
+            filenames_list = []
+
+            for filename in filenames:
+                if not filename.endswith(('.yml', '.yaml', '.json')):
+                    continue
+
+                filenames_list.append(filename)
+
+            for filename in filenames_list:
+                file_path = os.path.join(dirpath, filename)
+                file_list.append(file_path)
+
+            if not recursive:
+                break
+            
+        return file_list
+
+class YamlCaseLoader(object):
+    overall_def_dict = {
+        "api": {},
+        "suite": {}
+    }
+    testcases_cache_mapping = {}
+             
     def translate(self):
         ''' usage:
             m = YamlCaseLoader(r"D:\auto\buffer\test.yaml")
@@ -375,6 +472,64 @@ class YamlCaseLoader(object):
         return result
     
     @staticmethod
+    def load_dependencies(path_or_yamlfile):
+        """ load all api and suite definitions.
+        @param path_or_yamlfile:  dir path or yamlfile path where have api folder and suite folder 
+        """
+        if os.path.isdir(path_or_yamlfile):
+            # cases path
+            path = os.path.join(os.path.abspath(path_or_yamlfile), "dependencies")
+        else:
+            # case file path
+            path = os.path.join(os.path.dirname(os.path.abspath(path_or_yamlfile)), "dependencies")
+            
+        api_def_folder = os.path.join(path, "api")
+        suite_def_folder = os.path.join(path, "suite")
+                
+        # load api definitions
+        for test_file in Yaml.load_folder_files(api_def_folder):
+            YamlCaseLoader.load_api_file(test_file)
+
+        # load suite definitions        
+        for suite_file in Yaml.load_folder_files(suite_def_folder):
+            suite = YamlCaseLoader.load_file(suite_file)
+            if "def" not in suite["project"]:
+                raise p_exception.ParamsError("def missed in suite file: {}!".format(suite_file))
+
+            call_func = suite["project"]["def"]
+            function_meta = parse_function(call_func)
+            suite["function_meta"] = function_meta
+            YamlCaseLoader.overall_def_dict["suite"][function_meta["func_name"]] = suite
+    
+    @staticmethod
+    def load_api_file(file_path):
+        """ load api definition from file and store in overall_def_dict["api"]
+            @param file_path: yaml file path
+            @return: store in overall_def_dict["api"]
+        """
+        api_items = Yaml.load_file(file_path)
+        if not isinstance(api_items, list):
+            raise p_exception.FileFormatError("API format error: {}".format(file_path))
+
+        for api_item in api_items:
+            if not isinstance(api_item, dict) or len(api_item) != 1:
+                raise p_exception.FileFormatError("API format error: {}".format(file_path))
+
+            key, api_dict = api_item.popitem()
+            if key != "api" or not isinstance(api_dict, dict) or "def" not in api_dict:
+                raise p_exception.FileFormatError("API format error: {}".format(file_path))
+
+            api_def = api_dict.pop("def")
+            function_meta = parse_function(api_def)
+            func_name = function_meta["func_name"]
+
+            if func_name in YamlCaseLoader.overall_def_dict["api"]:
+                logger.log_warning("API definition duplicated: {}".format(func_name))
+
+            api_dict["function_meta"] = function_meta
+            YamlCaseLoader.overall_def_dict["api"][func_name] = api_dict
+                    
+    @staticmethod
     def load_file(yaml_file):
         ''' load yaml file
         @param yaml_file: yaml file path
@@ -413,10 +568,22 @@ class YamlCaseLoader(object):
                     if not case_id:
                         raise p_exception.ModelFormatError("Some cases do not have 'case_id'.")
                     if not re.search(word_p,case_id):
-                        raise p_exception.ModelFormatError("Invalid case_id: {}".format(case_id))
+                        raise p_exception.ModelFormatError("Invalid case_id: {}".format(case_id))                    
+                    test_block["name"] = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id, desc))
                     
-                    test_block["name"] = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id, desc))                    
-                    testset["cases"].append(test_block)
+                    if "api" in test_block:
+                        ref_call = test_block["api"]
+                        def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
+                        YamlCaseLoader._override_block(def_block, test_block)
+                        testset["cases"].append(test_block)
+                        
+                    elif "suite" in test_block:
+                        ref_call = test_block["suite"]
+                        block = YamlCaseLoader._get_block_by_name(ref_call, "suite")
+                        testset["cases"].extend(block["cases"])
+                        
+                    else:
+                        testset["cases"].append(test_block)
     
                 else:
                     logger.log_warning("unexpected block key: {}. block key should only be 'project' or 'case'.".format(key))
@@ -425,7 +592,143 @@ class YamlCaseLoader(object):
             logger.log_error(CommonUtils.get_exception_error())
         finally:
             return testset
+    
+    @staticmethod
+    def load_files(path):
+        """ load yaml testcases from file path
+        @param path: path could be in several type
+            - absolute/relative file path
+            - absolute/relative folder path
+            - list/set container with file(s) and/or folder(s)
+        @return testcase sets list, each testset is corresponding to a file
+            [
+                testset_dict_1,
+                testset_dict_2
+            ]
+        """
+        if isinstance(path, (list, set)):
+            testsets = []
+
+            for file_path in set(path):
+                if "dependencies" in file_path:
+                    continue
+                testset = YamlCaseLoader.load_files(file_path)
+                if not testset:
+                    continue
+                testsets.extend(testset)
+
+            return testsets
+
+        if not os.path.isabs(path):
+            path = os.path.join(os.getcwd(), path)
+
+        if path in YamlCaseLoader.testcases_cache_mapping:
+            return YamlCaseLoader.testcases_cache_mapping[path]
+
+        if os.path.isdir(path):
+            files_list = Yaml.load_folder_files(path)
+            testcases_list = YamlCaseLoader.load_files(files_list)
+
+        elif os.path.isfile(path):
+            try:
+                testset = YamlCaseLoader.load_file(path)
+                
+                if testset["cases"]:
+                    testcases_list = [testset]
+                else:
+                    testcases_list = []
+            except p_exception.FileFormatError:
+                testcases_list = []
+
+        else:
+            logger.log_error(u"file not found: {}".format(path))
+            testcases_list = []
+
+        YamlCaseLoader.testcases_cache_mapping[path] = testcases_list
+        return testcases_list
+    
+    @staticmethod
+    def _get_block_by_name(ref_call, ref_type):
+        """ get test content by reference name
+        @params:
+            ref_call: e.g. api_v1_Account_Login_POST($UserName, $Password)
+            ref_type: "api" or "suite"
+        """
+        function_meta = parse_function(ref_call)
+        func_name = function_meta["func_name"]
+        call_args = function_meta["args"]
+        block = YamlCaseLoader._get_test_definition(func_name, ref_type)
+        def_args = block.get("function_meta").get("args", [])
+
+        if len(call_args) != len(def_args):
+            raise p_exception.ParamsError("call args mismatch defined args!")
+
+        args_mapping = {}
+        for index, item in enumerate(def_args):
+            if call_args[index] == item:
+                continue
+
+            args_mapping[item] = call_args[index]
+
+        if args_mapping:
+            block = substitute_variables_with_mapping(block, args_mapping)
+
+        return block
+
+    @staticmethod
+    def _get_test_definition(name, ref_type):
+        """ get expected api or suite.
+        @params:
+            name: api or suite name
+            ref_type: "api" or "suite"
+        @return
+            expected api info if found, otherwise raise ApiNotFound exception
+        """
+        block = YamlCaseLoader.overall_def_dict.get(ref_type, {}).get(name)
+
+        if not block:
+            err_msg = "{} not found!".format(name)
+            if ref_type == "api":
+                raise p_exception.ApiNotFound(err_msg)
+            else:
+                # ref_type == "suite"                
+                raise p_exception.SuiteNotFound(err_msg)
+
+        return block
+
+    @staticmethod
+    def _override_block(def_block, current_block):
+        ''' override def_block with current_block '''       
+        
+        def_pre = def_block.get("pre_command")
+        current_pre = current_block.get("pre_command")        
+        if not def_pre:
+            current_block["pre_command"] = current_pre    
+        elif not current_pre:
+            current_block["pre_command"] = def_pre    
+        else:
+            current_block["pre_command"] = current_pre.extend(def_pre)
+        
+        def_post = def_block.get("post_command")
+        current_post = current_block.get("post_command")        
+        if not def_post:
+            current_block["post_command"] = current_post    
+        elif not current_post:
+            current_block["post_command"] = def_post    
+        else:
+            current_block["post_command"] = current_post.extend(def_post)
             
+        def_verify = def_block.get("verify")
+        current_verify = current_block.get("verify")        
+        if not def_verify:
+            current_block["post_command"] = current_verify    
+        elif not current_verify:
+            current_block["post_command"] = def_verify    
+        else:
+            current_block["post_command"] = current_verify.extend(def_verify)
+            
+        
+        
 def is_testset(data_structure):
     """ check if data_structure is a testset
     testset should always be in the following data structure:

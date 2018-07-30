@@ -96,19 +96,37 @@ class TestHtmlReport(unittest.TestCase):
 #         print(summary)
 
         self.assertEqual(len(summary), 2)
+        self.assertEqual(summary[0]["project_name"], "unit test")
         self.assertEqual(summary[0]["module_name"], "TestModule")
         
-        self.assertEqual(summary[1]["module_name"], "Module2")
+        self.assertEqual(summary[1]["project_name"], "unit test")
+        self.assertEqual(summary[1]["module_name"], "Module2")        
         
-    def test_generate_html_report(self):
+    def test_generate_html_report(self):        
+        ####  same project name, different project module
         reporter = HtmlReporter()
-        reporter.start_test("xxx功能模块", "ATP-1【登录测试】", "张三", "李四")
+        reporter.start_test("xxx功能模块1", "ATP-1【登录测试】", "张三", "李四")
         reporter.step_info("section", "------------test_1")
         reporter.step_info("step","step1")
         reporter.step_info("normal","normal1")
         reporter.stop_test()
-        reporter.generate_html_report("xxx功能模块")
         
-if __name__ == "__main__":    
-    unittest.main()
+        reporter.start_test("xxx功能模块2", "ATP-2【登录测试】", "张三", "李四")
+        reporter.step_info("section", "------------test_1")
+        reporter.step_info("step","step1")
+        reporter.step_info("normal","normal1")
+        reporter.stop_test()
+        self.assertEqual(len(reporter.generate_html_report(proj_name = "xxx系统", proj_module = "xxx功能模块1")), 1)
+        self.assertEqual(len(reporter.generate_html_report(proj_name = "xxx系统", proj_module = "xxx功能模块2")), 1)
+        self.assertEqual(len(reporter.generate_html_report(proj_name = "xxx系统")), 2)
+        
+        
+        
+        
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(TestHtmlReport("test_generate_html_report"))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
+#     unittest.main()
     

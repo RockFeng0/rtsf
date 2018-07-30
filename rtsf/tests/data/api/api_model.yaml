@@ -1,1 +1,0 @@
-       - api:    def: test_api($username, $password)    TestCaseID: ATP-1    Description: api test from api file    PreCommand:        - SetVar("url","http://www.baidu.com")    Steps:        - GET('#url#')    PostCommand:    Verify:        - VerifyCode("200")            
