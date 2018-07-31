@@ -60,7 +60,7 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(len(task_obj.tasks), 1)
     
     def test_init_test_suite_from_dir(self):
-        cases_path = r'test_tmp\testcases'             
+        cases_path = r'test_tmp\testcases'
         p1 = os.path.join(cases_path, "t1")
         p2 = os.path.join(cases_path, "t2")
          

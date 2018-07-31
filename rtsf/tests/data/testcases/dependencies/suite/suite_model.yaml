@@ -5,7 +5,7 @@
     # id 必填
     id: ATP-2
     # desc 必填
-    desc: 测试用例-模板格式的设计-模板（全字段）
+    desc: suite测试用例-模板（字段与testset测试用例相同）
     
     # responsible 选填
     responsible: 罗科峰

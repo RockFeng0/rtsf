@@ -575,11 +575,13 @@ class YamlCaseLoader(object):
                         ref_call = test_block["api"]
                         def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
                         YamlCaseLoader._override_block(def_block, test_block)
+                        logger.log_debug("merged api block: {}".format(test_block))
                         testset["cases"].append(test_block)
                         
                     elif "suite" in test_block:
                         ref_call = test_block["suite"]
                         block = YamlCaseLoader._get_block_by_name(ref_call, "suite")
+                        logger.log_debug("extend suite block: {}".format(block["cases"]))
                         testset["cases"].extend(block["cases"])
                         
                     else:
@@ -701,31 +703,36 @@ class YamlCaseLoader(object):
         ''' override def_block with current_block '''       
         
         def_pre = def_block.get("pre_command")
-        current_pre = current_block.get("pre_command")        
+        current_pre = current_block.get("pre_command")
+        
+        def_post = def_block.get("post_command")
+        current_post = current_block.get("post_command")
+        
+        def_verify = def_block.get("verify")
+        current_verify = current_block.get("verify")
+        
+        current_block.update(def_block)        
+        # merge pre_command        
         if not def_pre:
             current_block["pre_command"] = current_pre    
         elif not current_pre:
             current_block["pre_command"] = def_pre    
         else:
-            current_block["pre_command"] = current_pre.extend(def_pre)
-        
-        def_post = def_block.get("post_command")
-        current_post = current_block.get("post_command")        
+            current_block["pre_command"] = current_pre.extend(def_pre)        
+        # merge post_command        
         if not def_post:
             current_block["post_command"] = current_post    
         elif not current_post:
             current_block["post_command"] = def_post    
         else:
             current_block["post_command"] = current_post.extend(def_post)
-            
-        def_verify = def_block.get("verify")
-        current_verify = current_block.get("verify")        
+        # merge verify        
         if not def_verify:
-            current_block["post_command"] = current_verify    
+            current_block["verify"] = current_verify    
         elif not current_verify:
-            current_block["post_command"] = def_verify    
+            current_block["verify"] = def_verify    
         else:
-            current_block["post_command"] = current_verify.extend(def_verify)
+            current_block["verify"] = current_verify.extend(def_verify)
             
         
         

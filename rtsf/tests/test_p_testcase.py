@@ -24,24 +24,34 @@ from rtsf.p_common import FileSystemUtils
 
 
 class TestYaml(unittest.TestCase):
+    
+    def setUp(self):
+        self.case = r'data\testcases\case_model.yaml' 
         
-    def test_load_folder_files(self):
-        self.fp = r'data\testcases\t'
-        p1 = r'data\testcases\t\t1'
-        p2 = r'data\testcases\t\t2'
+    def test_load_folder_files(self):        
+        
+        cases_path = r'test_tmp\testcases'
+        p1 = os.path.join(cases_path, "t1")
+        p2 = os.path.join(cases_path, "t2")
+         
         FileSystemUtils.mkdirs(p1)
         FileSystemUtils.mkdirs(p2)
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(self.fp,"t.yaml"))
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(p1,"t1.yaml"))
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(p2,"t2.yaml"))
+        shutil.copyfile(self.case, os.path.join(cases_path, "t.yaml"))
+        shutil.copyfile(self.case, os.path.join(p1, "t1.yaml"))
+        shutil.copyfile(self.case, os.path.join(p2, "t2.yaml"))
         
-        result1 = Yaml.load_folder_files(self.fp, recursive = False)        
+        
+        result1 = Yaml.load_folder_files(p1, recursive = False)        
         self.assertEqual(len(result1), 1)
         
-        result2 = Yaml.load_folder_files(self.fp, recursive = True)
+        result2 = Yaml.load_folder_files(cases_path, recursive = True)
         self.assertEqual(len(result2), 3)
         
 class TestYamlCaseLoader(unittest.TestCase):
+    
+    def setUp(self):
+        self.case = r'data\testcases\case_model.yaml' 
+        self.case_api_and_suite = r'data\testcases\case_model-api&suite.yaml'
     
     def test_load_api_file(self):
         YamlCaseLoader.load_api_file(r'data\dependencies\api\api_model.yaml')
@@ -50,7 +60,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
     
     def test_load_dependencies_from_file(self):        
-        YamlCaseLoader.load_dependencies(r'data\testcases\case_model.yaml')        
+        YamlCaseLoader.load_dependencies(self.case)   
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
         self.assertEqual("test_suite" in YamlCaseLoader.overall_def_dict["suite"], True)
@@ -58,40 +68,57 @@ class TestYamlCaseLoader(unittest.TestCase):
     
     def test_load_dependencies_from_dir(self):
         YamlCaseLoader.load_dependencies(r'data\testcases')
+        
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
         self.assertEqual("test_suite" in YamlCaseLoader.overall_def_dict["suite"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["suite"]["test_suite"], True)
         
     def test_load_file(self):        
-        test_cases = YamlCaseLoader.load_file(r'data\testcases\case_model.yaml')
+        test_cases = YamlCaseLoader.load_file(self.case)
         self.assertIn("file_path", test_cases)
         self.assertIn("project", test_cases)
         self.assertIn("cases", test_cases)
+          
+    def test_load_file_with_api_and_suite(self):
+        YamlCaseLoader.load_dependencies(self.case_api_and_suite)
+        test_cases = YamlCaseLoader.load_file(self.case_api_and_suite)
+        
+        self.assertIn("file_path", test_cases)
+        self.assertIn("project", test_cases)
+        self.assertIn("cases", test_cases)
+        self.assertEqual(test_cases["name"], "分层用例-api-suite")
+        
+        all_cases_name = [case["name"] for case in test_cases["cases"]]
+        expected = ("ATP-1[使用api示例]", "ATP-2[suite测试用例-模板（字段与testset测试用例相同）]", "ATP-2[testset测试用例-模板（全字段）]")
+        self.assertEqual(set(all_cases_name), set(expected))
+        
     
     def test_load_files_from_file(self):
         # file_abs_path.    Same as load_file
-        test_cases = YamlCaseLoader.load_files(r'data\testcases\case_model.yaml')
+        test_cases = YamlCaseLoader.load_files(self.case)
+        
         self.assertIn("file_path", test_cases[0])
         self.assertIn("project", test_cases[0])
         self.assertIn("cases", test_cases[0])
         
     def test_load_files_from_dir(self):        
-        # file path.     
-        fp = r'data\testcases\t'
-        p1 = r'data\testcases\t\t1'
-        p2 = r'data\testcases\t\t2'
+        # file path.
+        cases_path = r'test_tmp\testcases'
+        p1 = os.path.join(cases_path, "t1")
+        p2 = os.path.join(cases_path, "t2")
+         
         FileSystemUtils.mkdirs(p1)
         FileSystemUtils.mkdirs(p2)
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(fp,"t.yaml"))
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(p1,"t1.yaml"))
-        shutil.copyfile(r'data\testcases\case_model.yaml', os.path.join(p2,"t2.yaml"))
-        
-        cases = YamlCaseLoader.load_files(r'data\testcases')
-        self.assertEqual(len(cases), 4)
+        shutil.copyfile(self.case, os.path.join(cases_path, "t.yaml"))
+        shutil.copyfile(self.case, os.path.join(p1, "t1.yaml"))
+        shutil.copyfile(self.case, os.path.join(p2, "t2.yaml"))
+                
+        cases = YamlCaseLoader.load_files(cases_path)
+        self.assertEqual(len(cases), 3)
         
         all_cases_file_name = [os.path.basename(case["file_path"]) for case in cases]
-        expected = ('case_model.yaml', "t.yaml", "t1.yaml", "t2.yaml")
+        expected = ("t.yaml", "t1.yaml", "t2.yaml")
         self.assertEqual(set(all_cases_file_name), set(expected))     
         
 
@@ -198,7 +225,7 @@ class TestTestCaseParser(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestSuite()
 #     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYaml))
-    suite.addTest(TestYamlCaseLoader("test_load_files_from_dir"))    
+    suite.addTest(TestYamlCaseLoader("test_load_file_with_api_and_suite"))    
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 #     unittest.main(verbosity=2)
