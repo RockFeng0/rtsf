@@ -702,14 +702,14 @@ class YamlCaseLoader(object):
     def _override_block(def_block, current_block):
         ''' override def_block with current_block '''       
         
-        def_pre = def_block.get("pre_command")
-        current_pre = current_block.get("pre_command")
+        def_pre = def_block.get("pre_command", [])
+        current_pre = current_block.get("pre_command", [])
         
-        def_post = def_block.get("post_command")
-        current_post = current_block.get("post_command")
+        def_post = def_block.get("post_command", [])
+        current_post = current_block.get("post_command", [])
         
-        def_verify = def_block.get("verify")
-        current_verify = current_block.get("verify")
+        def_verify = def_block.get("verify", [])
+        current_verify = current_block.get("verify", [])
         
         current_block.update(def_block)        
         # merge pre_command        
