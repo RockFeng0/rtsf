@@ -19,9 +19,26 @@ Provide a function for the automation test
 '''
 
 import unittest, shutil,os
-from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, Yaml
+from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, Yaml, substitute_variables_with_mapping
 from rtsf.p_common import FileSystemUtils
+from rtsf.p_applog import logger
 
+class TestPublicFuction(unittest.TestCase):
+    
+    def test_substitute_variables_with_mapping(self):
+        content = {
+            'request': {
+                'url': '/api/users/$uid',
+                'headers': {'token': '$token',"username": "$username", "uid":"$uid"},           
+            }
+        }
+        mapping = {"$uid": 1000, "$username":"luokefeng", "$password":123456}
+        
+        result = substitute_variables_with_mapping(content, mapping)
+        print(result)
+        expected = {'request': {'url': '/api/users/1000', 'headers': {'token': '$token', 'username': 'luokefeng', 'uid': 1000}}}
+        self.assertEqual(result, expected)
+                        
 
 class TestYaml(unittest.TestCase):
     
@@ -223,9 +240,11 @@ class TestTestCaseParser(unittest.TestCase):
         self.assertEqual(actual, expect)       
 
 if __name__ == '__main__':
+    logger.setup_logger("debug")
+#     unittest.main(verbosity=2)
+
     suite = unittest.TestSuite()
 #     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYaml))
-    suite.addTest(TestYamlCaseLoader("test_load_file_with_api_and_suite"))    
+    suite.addTest(TestPublicFuction("test_substitute_variables_with_mapping"))    
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-#     unittest.main(verbosity=2)

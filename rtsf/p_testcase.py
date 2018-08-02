@@ -24,7 +24,7 @@ import os,re,io,ast
 from rtsf.p_applog import logger
 from rtsf import p_exception,p_compat
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils
-from rtsf.p_compat import numeric_types
+from rtsf.p_compat import numeric_types,builtin_str
 
 
 variable_regexp = r"\$([\w_]+)"
@@ -161,12 +161,18 @@ def substitute_variables_with_mapping(content, mapping):
         return substituted_data
 
     # content is in string format here
-    for var, value in mapping.items():
+    logger.log_debug("Will substitute: {} with {}".format(content, mapping))
+    for var, value in mapping.items():        
+        logger.log_debug("\t: {} - {}".format(content, {var:value}))
         if content == var:
             # content is a variable
             content = value
         else:
-            content = content.replace(var, str(value))
+            if not isinstance(value, str):
+                value = builtin_str(value)
+            
+            if isinstance(content, builtin_str):
+                content = content.replace(var, value)
 
     return content
 
