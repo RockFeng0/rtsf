@@ -48,8 +48,8 @@ if is_py2:
     reduce = reduce
     
     builtin_str = str
-    str = unicode
-    bytes = str    
+    bytes = str
+    str = unicode      
     basestring = basestring
     numeric_types = (int, long, float)
     integer_types = (int, long)

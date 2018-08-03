@@ -94,7 +94,7 @@ class HtmlReporter(object):
         all_summary = HtmlReporter.get_summary(self.summary, proj_name = proj_name)
         
         for summary in all_summary:
-            html_report = os.path.join(self.result_path, "[{}]{}_{}.html".format(FileSystemUtils.get_legal_filename(summary["project_name"]),
+            html_report = os.path.join(self.result_path, u"[{}]{}_{}.html".format(FileSystemUtils.get_legal_filename(summary["project_name"]),
                                                                                     FileSystemUtils.get_legal_filename(summary["module_name"]), 
                                                                                 DateTimeUtils.get_stamp_datetime_coherent(),
                                                                                 ))        
