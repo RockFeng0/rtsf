@@ -22,6 +22,10 @@
 - 其中的变量和函数的替换，参照了httprunner项目的格式  $VAR ${FUNC}, 该格式取代了我的[rock4automation项目](https://github.com/RockFeng0/rock4automation)中的， #var# 等替换规则
 - yaml测试用例，是一个testset(测试集)，可以引入api和suite
 
+> 如果测试用例使用了api，则合并。  意思是，如果测试用例中（如下示例）使用了api关键字，那么api中定义的所有键值对，会和case中定义的键值对进行合并，形成一个完整的用例。**可以理解为并集的过程**
+
+> 如果测试用例使用了suite，则扩展。 意思是，如果测试用例中（如下示例）使用了suite关键字,那么suite中定义的所有case，替换当前case。 可以理解为置当前case为空集，取suite中的所有case集合为当前测试用例。**所以在使用了suite的区域块case中，定义的键值对和关键字都无效**
+
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
 
 ```
@@ -39,7 +43,7 @@
 
 - case:
     id: ATP-2
-    desc: 使用suite示例
+    desc: 使用suite示例, 当前case中的id 和desc 这些键值对，都无效
     
     # 用例分层-使用 suite时，必填
     suite: test_suite()
