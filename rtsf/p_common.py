@@ -46,7 +46,7 @@ from collections import OrderedDict
 ConfigParser = p_compat.ConfigParser
 
 filesystemencoding = sys.getfilesystemencoding()
-encoding = "ascii"
+encoding = "utf-8"
 if sys.platform == 'win32':
     # Part code of IOBinding 
     try:
