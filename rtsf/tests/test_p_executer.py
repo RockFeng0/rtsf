@@ -87,7 +87,7 @@ class TestTestRunner(unittest.TestCase):
 #         logger.setup_logger("debug")
         runner = TestRunner(runner = Runner).run(self.case)
         html_report = runner.gen_html_report()
-        #print(html_report)
+        print(html_report)
           
         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)
         self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
@@ -96,7 +96,8 @@ class TestTestRunner(unittest.TestCase):
           
         test_runner = runner._task_suite.tasks[0].test_runner        
         self.assertEqual(isinstance(test_runner, Runner), True)          
-        self.assertEqual(isinstance(test_runner.tracer, HtmlReporter), True)
+        self.assertEqual(isinstance(test_runner.tracers, dict), True)
+        self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
           
         self.assertEqual(os.path.isfile(html_report[0]), True)
@@ -104,7 +105,7 @@ class TestTestRunner(unittest.TestCase):
     def test_TestRunner_from_dir(self):
 #         logger.setup_logger("debug")
         runner = TestRunner(runner = Runner).run(r'data\testcases')        
-        html_report = runner.gen_html_report()        
+        html_report = runner.gen_html_report()
         #print(html_report)
         
         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)        
@@ -113,7 +114,8 @@ class TestTestRunner(unittest.TestCase):
         
         test_runner = runner._task_suite.tasks[0].test_runner        
         self.assertEqual(isinstance(test_runner, Runner), True)          
-        self.assertEqual(isinstance(test_runner.tracer, HtmlReporter), True)
+        self.assertEqual(isinstance(test_runner.tracers, dict), True)
+        self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
         
         
@@ -123,7 +125,7 @@ class TestTestRunner(unittest.TestCase):
         
 if __name__ == "__main__":
 #     suite = unittest.TestSuite()
-#     suite.addTest(TestTestRunner("test_TestRunner_from_dir"))    
+#     suite.addTest(TestTestRunner("test_TestRunner_from_file"))    
 #     runner = unittest.TextTestRunner(verbosity=2)
 #     runner.run(suite)    
     unittest.main()

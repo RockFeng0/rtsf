@@ -5,10 +5,11 @@ Current module: pyrunner.p_executer
 Rough version history:
 v1.0    Original version to use
 v1.1    add 'launch_mobile' function
+v2.1    reconstitute this module with unittest and support mutil runner 
 ********************************************************************
     @AUTHOR:  Administrator-Bruce Luo(罗科峰)
     MAIL:    lkf20031988@163.com    
-    RCS:     rtsf.p_executer,v 2.0 2017年2月7日
+    RCS:     rtsf.p_executer,v 2.1 2018年9月2日
     FROM:   2015年5月11日
 ********************************************************************
 
@@ -20,6 +21,8 @@ UI and Web Http automation frame for python.
 
 
 import unittest,sys,os
+import multiprocessing
+from functools import partial
 from rtsf.p_applog import logger
 from rtsf.p_tracer import Tracer
 from rtsf.p_testcase import YamlCaseLoader
@@ -36,7 +39,7 @@ class TestCase(unittest.TestCase):
     def runTest(self):
         """ run testcase and check result.
         """
-        self.test_runner.run_test(self.testcase_dict)
+        self.test_runner._run_test(self.testcase_dict)
 
 
 class TestSuite(unittest.TestSuite):
@@ -69,8 +72,12 @@ class TestSuite(unittest.TestSuite):
         
         file_path = testset.get("file_path")
         self.test_runner = test_runner = runner_cls()
+        
+        if not isinstance(test_runner._default_devices, (list, tuple)):            
+            raise TypeError("_default_devices not a list or tuple.")
+        
         test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
-                                tracer = Tracer(dir_name = os.path.dirname(os.path.abspath(file_path))),
+                                tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices},
                                 projinfo = testset.get("project")
                                 )
         
@@ -185,22 +192,56 @@ class TestRunner(object):
     def gen_html_report(self):
         html_report = []
         for suite in self._task_suite.tasks:
-            reporter = suite.test_runner.tracer
-        
             proj_name = suite.test_runner.proj_info["name"]
-            html_report.extend(reporter.generate_html_report(proj_name, proj_module=None))
+            reporters = suite.test_runner.tracers.values()
+            
+            for reporter in reporters:
+                html_report.extend(reporter.generate_html_report(proj_name, proj_module=None))
         return html_report        
         
 class Runner(object):
-       
-    def init_runner(self, parser, tracer, projinfo):
+    
+    def __init__(self):
+        '''
+        @note: maybe override variables
+            _default_devices -> list type; to genrate tracer map, format is `{device_id: tracer_obj}` 
+                                 default {"":tracer_obj} use to generate report for local host; 
+                                 {"192.168.0.1:5555":tracer_obj1, "192.168.0.2:5555":tracer_obj2} use to generate report for remote host if run with mutilple process                                
+            _default_drivers -> list type; to define driver map, format is `(device_id: driver)`
+                                default ("", None) use to run case with a driver;
+                                [("192.168.0.1:5555":selenium_driver), ("192.168.0.2:5555":appium_driver), ...] use for multiple process to run case with specified drivers
+                                  
+        '''
+        self._default_devices = [""]
+        self._default_drivers = [("",None)]
+        self._local_driver = True
+    
+    def init_runner(self, parser, tracers, projinfo):
+        ''' initial some instances for preparing to run test case
+        @note:  should not override
+        @param parser: instance of TestCaseParser
+        @param tracers: dict type for the instance of Tracer. Such as {"":tracer_obj} or {"192.168.0.1:5555":tracer_obj1, "192.168.0.2:5555":tracer_obj2} 
+        @param proj_info: dict type of test case.  use like:  self.proj_info["module"], self.proj_info["name"]
+            yaml case like: 
+                - project:
+                    name: xxx
+                    module: xxxx
+            dict case like:
+                {"project": {"name": xxx, "module": xxxx}}            
+                
+        '''
         self.parser = parser
-        self.tracer = tracer
-        self.proj_info = projinfo        
+        self.tracers = tracers
+        self.proj_info = projinfo
         
-    def run_test(self, testcase_dict):
-        ''' please override '''
-        reporter = self.tracer
+    def run_test(self, testcase_dict, driver_map):
+        ''' define how to run a case. override this method
+        @param testcase_dice:  yaml case
+        @param driver_map:  device id map to a driver        
+        '''
+        fn, _ = driver_map
+        reporter = self.tracers[fn]
+        
         reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
         reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
         
@@ -208,3 +249,30 @@ class Runner(object):
         reporter.step(u"step ok")
         reporter.normal(u"normal ok")
         reporter.stop()
+        
+        return reporter
+    
+    def _run_test(self, testcase_dict):
+        ''' guide the running case
+        @param testcase_dice:  yaml case
+        
+        '''
+        if self._local_driver:
+            self.run_test(testcase_dict, self._default_drivers[0])
+        else:
+            self._drivers = []
+            self._run_grid(partial(self.run_test, testcase_dict), self._default_drivers)
+            
+    def _run_grid(self, func, iterables):
+        ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
+        @param func:  function object
+        @param iterables:  iterable objects
+        '''
+        multiprocessing.freeze_support()
+        pool = multiprocessing.Pool()        
+        pool_tracers = pool.map(func, iterables)
+        pool.close()
+        pool.join()
+        
+        # 传递给 pool.map的 实例对象，内存地址发生变化， 因此，这里在运行结束后，重新定义 self.tracers 
+        self.tracers = dict(zip(self._default_devices, pool_tracers))
