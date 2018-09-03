@@ -310,64 +310,71 @@ print(html_report)
  注意: 重写的时候，第一个参数，是单个case，不是所有case，**只需要写一个case的执行逻辑**； 重写好 run_test是使用rtsf的主要工作。
 
 ```
-from rtsf.p_executer import Runner
-
-class DemoRunner(Runner):      
+### 类似LocalDriver如下方式，适用于非分布式或者单进程的测试情况
+class LocalDriver(Runner):
+    
+    def __init__(self):
+        super(LocalDriver,self).__init__()
         
-    def run_test(self, testcase_dict):
-        parser = self.parser
-        parser.bind_functions()
-        parser.update_binded_variables()
+        # 默认就是，True， 本地运行;  False，则grid模式，多进程运行
+        self._local_driver = True
+        
+        # 设置驱动器;  本地运行，默认值是： [("",None)];  格式为 `(device_id, driver)`
+        self._default_drivers = [("",None)]
+        
+        # 设置设备；  本地运行， 默认值是[""]
+        self._default_devices = [""]
         
         
-        tracer = self.tracer
-        tracer.start(self.proj_info["module"], testcase_dict["name"], testcase_dict.get("responsible","Administrator"), testcase_dict.get("tester","Administrator"))        
-        tracer.section(case_name)
-         
+    def run_test(self, testcase_dict, driver_map):
+        # 这里编写，如何运行测试用例
         # 还记得，yaml模型介绍的时候，说的执行顺序吗？    pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
-        try:            
-            tracer.normal("**** precommand")
-            precommand = testcase_dict.get("pre_command",[])
-            # do something to execute the precommand
-            for i in precommand:
-                tracer.step("{}".format(i))
-             
-            self.tracer.normal("**** steps")
-            steps = testcase_dict["steps"]
-            # do something to execute the steps
-            for step in steps:
-                # only request or you can control it to webdriver、mobiledriver、mfcdriver、wpfdriver
-                if not "request" in step:
-                    continue
-                 
-                url =step["request"]["url"]
-                method = step["request"]["method"]                                    
-                head = step["request"].get("headers")                 
-                data = step["request"].get("data")
-                
-                self.tracer.step("requests headers -> \n\t{}".format(head))
-                self.tracer.step("requests body -> \n\t{}".format(data))
-                self.tracer.step("requests:\n\t{} {}".format(method.upper(), url))
-                
-                # do some thing with requests 
-                resp = requests.post(url, data = data, headers = head， ...)
-                                
-                self.tracer.step("response headers: \n\t{}".format(resp.headers))
-                self.tracer.step("response body: \n\t{}".format(resp.text))                                 
+        device_id, driver = driver_map
+        reporter = self.tracers[device_id]
+        
+        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
+        
+        reporter.section(u"------------section ok")
+        reporter.step(u"step ok")
+        reporter.normal(u"normal ok")
+        reporter.stop()
+        
+        return reporter                   
+
+### 类似RemoteDriver如下方式，适用分布式的测试，比如 selenium grid模式或者appium多设备并行测试的情况 
+class RemoteDriver(_Driver):
+    
+    def __init__(self):
+        super(RemoteDriver,self).__init__()        
+        self._local_driver = False
+        self._default_devices =[]        
+        self._default_drivers = []        
+        
+        executors = ["http://192.168.1.1:5555","http://192.168.1.2:5555"]
+        for executor in executors:
+            fn = FileSystemUtils.get_legal_filename(executor)
+            self._default_devices.append(fn)
             
-            self.tracer.normal("**** postcommand")
-            postcommand = testcase_dict.get("post_command", [])        
-            # do something to execute the postcommand
-            for i in postcommand:
-                self.tracer.step("{}".format(i))
-            
-            self.tracer.normal("**** verify")
-            verify = testcase_dict.get("verify",[])
-            # do something to execute the postcommand
-            ...
-        except Exception as e:
-            tracer.error("something error, %s" %e)
-        finally:             
-            tracer.stop()
+            # remote_webdriver_or_others 是指，传递一些测试用的驱动，如 webdriver.remote等   
+            self._default_drivers.append((fn, remote_webdriver_or_others))   
+                        
+    def run_test(self, testcase_dict, driver_map):
+        # 这里编写，如何运行测试用例
+        # 还记得，yaml模型介绍的时候，说的执行顺序吗？    pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
+        
+        # 这里的driver ,就是  remote_webdriver_or_others定义的driver
+        device_id, driver = driver_map
+        reporter = self.tracers[device_id]
+        
+        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
+        
+        reporter.section(u"------------section ok")
+        reporter.step(u"step ok")
+        reporter.normal(u"normal ok")
+        reporter.stop()
+        
+        return reporter
 ```
 > self.parser 解析测试用例的实例，控制全局上下文和映射关键字与执行函数； self.tracer 跟踪执行日志的实例，详细记录每个用例的执行过程，是很关键的；
