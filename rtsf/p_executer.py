@@ -21,7 +21,7 @@ UI and Web Http automation frame for python.
 
 
 import unittest,sys,os
-import multiprocessing
+import multiprocessing,threading
 from functools import partial
 from rtsf.p_applog import logger
 from rtsf.p_tracer import Tracer
@@ -261,9 +261,9 @@ class Runner(object):
             self.run_test(testcase_dict, self._default_drivers[0])
         else:
             self._drivers = []
-            self._run_grid(partial(self.run_test, testcase_dict), self._default_drivers)
+            self._run_grid_multithread(partial(self.run_test, testcase_dict), self._default_drivers)
             
-    def _run_grid(self, func, iterables):
+    def _run_grid_multiprocess(self, func, iterables):
         ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
         @param func:  function object
         @param iterables:  iterable objects
@@ -276,3 +276,17 @@ class Runner(object):
         
         # 传递给 pool.map的 实例对象，内存地址发生变化， 因此，这里在运行结束后，重新定义 self.tracers 
         self.tracers = dict(zip(self._default_devices, pool_tracers))
+    
+    def _run_grid_multithread(self, func, iterables):
+        ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
+        @param func:  function object
+        @param iterables:  iterable objects
+        '''
+        
+        f = lambda x: threading.Thread(target = func,args = (x,))
+        threads = map(f, iterables)
+        for thread in threads:
+            thread.setDaemon(True)
+            thread.start()
+            thread.join()
+            
