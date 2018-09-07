@@ -177,20 +177,21 @@ class IntelligentWaitUtils(object):
         raise Exception(message)
     
     @staticmethod
-    def wait_for_connection(ip="localhost",port=4444,wait_time=30):
-        socket.setdefaulttimeout(wait_time)
-        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
-        try:
-            sk.connect((ip,port))
-            result = True            
-        except socket.timeout:
-            print("connection timeout.") 
-            result = False
-        except:
-            result = None
-        finally:
-            sk.close()
-            return result
+    def wait_for_connection(ip="localhost",port=4444, timeout=30):
+        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        end_time = time.time() + timeout
+        while True:
+            try:
+                sk.connect((ip,int(port)))
+                sk.shutdown(2)
+                sk.close()
+                return True    
+            except:
+                pass            
+            time.sleep(1)
+            if time.time() > end_time:
+                break
+        return False
         
 class DateTimeUtils(object):
     
