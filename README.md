@@ -20,6 +20,9 @@
 
 - 用例模型，基本保持[rock4automation项目](https://github.com/RockFeng0/rock4automation)的case模型
 - 其中的变量和函数的替换，参照了httprunner项目的格式  $VAR ${FUNC}, 该格式取代了我的[rock4automation项目](https://github.com/RockFeng0/rock4automation)中的， #var# 等替换规则
+- 变量的引用: $VAR  其中，VAR为字母、数字、下划线组成的变量名.  正则表示为:  [a-zA-Z0-9_]
+- 函数的引用: ${FUNC}    其中, FUNC为字母、数字、下划线、横线、点号、等号、逗号组成的函数. 示例:  /api/${add(1, 2)}?_t=${get_timestamp()}   正则表示为: [a-zA-Z0-9.-_=,]
+- 如果函数引用的过程中，参数含有特殊字符，将不会被识别， 解决方法是，使用全局变量.   示例,如:  a='@#$%^&'; $print($a)   
 - yaml测试用例，是一个testset(测试集)，可以引入api和suite
 
 > 如果测试用例使用了api，则合并。  意思是，如果测试用例中（如下示例）使用了api关键字，那么api中定义的所有键值对，会和case中定义的键值对进行合并，形成一个完整的用例。**可以理解为并集的过程**
