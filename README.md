@@ -113,14 +113,18 @@
 - case: 必填(id->测试用例id; desc->测试用例的描述;steps->测试步骤;verify->校验),选填(responsible->测试责任人;tester->测试执行人;pre_command->测试前置条件(前置钩子);post_command->测试后置条件(后置钩子))
 - case-steps: request->http测试; webdriver->web UI测试; appdriver->移动端app测试;wpfdriver->使用wpf技术的pc客户端测试;mfcdriver->使用mfc技术的pc客户端测试)
 
-## rtsf-测试用例分层
+## rtsf-测试用例分层(测试组件化)
 
-- 测试用例分层，是指在testset的测试集中，添加了api和suite的测试的测试用例.
-- 如果，测试用例使用了 api 或者 suite等分层关键字，那么程序会在在指定运行的测试用例同级目录的 dependencies文件夹中寻找api和suite
-- api合并，是指测试用例 合并 api用例的键值对。
-- suite扩展，是指测试用例 扩展为suite中的用例。
+- rtsf支持测试用例分层，允许测试用例的组件化
+- 测试用例编写过程中，使用api关键字封装当前单个case，允许其他case进行调用,类似调用单个api一样
+- 测试用例编写过程中，使用suite关键字，封装当前多个cases，允许其他case进行调用， 类似调用组件化模块一样
+- api和suite的存放路径，在指定运行的测试用例同级目录的 dependencies/api和dependencies/suite中
+- api用例的原理，两个字: 合并. 是指测试用例 合并 api用例的键值对。
+- suite用例的原理，两个字: 扩展.，是指测试用例 扩展为suite中的用例。
 
 > 注意: 其内在逻辑，其实是，先加载api和suite,以dict形式存储在内置变量中，然后，加载测试集的用例，如果测试用例使用了api则合并，如果测试用例使用了suite则扩展。
+
+分层用例的示例，参见[rtsf-http项目的介绍](https://github.com/RockFeng0/rtsf-http)
 
 ### api用例介绍
 
