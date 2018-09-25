@@ -16,18 +16,13 @@
 
 > 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型 
 
-### Yaml测试用例模型介绍
+### 基本测试用例-yaml模型介绍
 
 - 用例模型，基本保持[rock4automation项目](https://github.com/RockFeng0/rock4automation)的case模型
 - 其中的变量和函数的替换，参照了httprunner项目的格式  $VAR ${FUNC}, 该格式取代了我的[rock4automation项目](https://github.com/RockFeng0/rock4automation)中的， #var# 等替换规则
 - 变量的引用: $VAR  其中，VAR为字母、数字、下划线组成的变量名.  正则表示为:  [a-zA-Z0-9_]
 - 函数的引用: ${FUNC}    其中, FUNC为字母、数字、下划线、横线、点号、等号、逗号组成的函数. 示例:  /api/${add(1, 2)}?_t=${get_timestamp()}   正则表示为: [a-zA-Z0-9.-_=,]
 - 如果函数引用的过程中，参数含有特殊字符，将不会被识别， 解决方法是，使用全局变量.   示例,如:  a='@#$%^&'; $print($a)   
-- yaml测试用例，是一个testset(测试集)，可以引入api和suite
-
-> 如果测试用例使用了api，则合并。  意思是，如果测试用例中（如下示例）使用了api关键字，那么api中定义的所有键值对，会和case中定义的键值对进行合并，形成一个完整的用例。**可以理解为并集的过程**
-
-> 如果测试用例使用了suite，则扩展。 意思是，如果测试用例中（如下示例）使用了suite关键字,那么suite中定义的所有case，替换当前case。 可以理解为置当前case为空集，取suite中的所有case集合为当前测试用例。**所以在使用了suite的区域块case中，定义的键值对和关键字都无效**
 
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
 
@@ -118,9 +113,8 @@
 - rtsf支持测试用例分层，允许测试用例的组件化
 - 测试用例编写过程中，使用api关键字封装当前单个case，允许其他case进行调用,类似调用单个api一样
 - 测试用例编写过程中，使用suite关键字，封装当前多个cases，允许其他case进行调用， 类似调用组件化模块一样
-- api和suite的存放路径，在指定运行的测试用例同级目录的 dependencies/api和dependencies/suite中
-- api用例的原理，两个字: 合并. 是指测试用例 合并 api用例的键值对。
-- suite用例的原理，两个字: 扩展.，是指测试用例 扩展为suite中的用例。
+- api用例的原理，两个字: 合并. 是指测试用例调用api的时候，实际 合并 api用例的键值对。
+- suite用例的原理，两个字: 扩展. 是指测试用例调用suite的时候，实际是当前case替换并扩展为suite中的用例,**所以在调用suite的case区域块中，定义的键值对和关键字都无效**
 
 > 注意: 其内在逻辑，其实是，先加载api和suite,以dict形式存储在内置变量中，然后，加载测试集的用例，如果测试用例使用了api则合并，如果测试用例使用了suite则扩展。
 
@@ -129,7 +123,6 @@
 ### api用例介绍
 
 - api测试用例，实际上是一个最小单元的测试，封装后，便于被suite和testset重复引入
-- 应用测试用例的分层思想
 - api测试用例中的def的解析，参照了httprunner项目
 - 存放路径, 测试用例同级目录下:  dependencies/api/*。yaml, dependencies/api/*。yml, dependencies/api/*。json
 
@@ -187,7 +180,7 @@
 ### suite用例介绍
 
 - suite测试用例，实际上是，由一些api或者一些case，封装后的，相对稳定的，测试用例
-- 应用测试用例分层思想，suite也可以被testset引入
+- suite可以被testset引入
 - 存放路径, 测试用例同级目录下:  dependencies/suite/*。yaml, dependencies/suite/*。yml, dependencies/suite/*。json
 
 > suite的用例跟 testset差别不大，主要的是，在project中，添加def关键字，定义引入suite的函数入口
