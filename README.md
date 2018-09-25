@@ -251,7 +251,7 @@
 
 ## 测试执行方法
 
-> 执行的方法，需要重写，rtsf.p_executer.Runner.run_test函数. 
+> 执行测试,有两个步骤: 1. 重写 rtsf.p_executer.Runner.run_test 函数. 2. 运行指定的测试文件或者测试文件所在的文件夹
 
 ### 默认情况下，未重写Runner.run_test
 
@@ -262,8 +262,11 @@
 # coding:utf-8
 from rtsf.p_executer import TestRunner,Runner
 
-# 执行测试
-runner = TestRunner(runner = Runner)).run(test.yaml')
+# 执行测试, 指定测试文件test.yaml
+runner = TestRunner(runner = Runner)).run('test.yaml')
+
+# 也可以指定测试用例，指定目录,如c:\case目录下*.yaml和*.json
+# runner = TestRunner(runner = Runner)).run(r'c:\case')
 
 # 生成测试报告
 html_report = runner.gen_html_report()
