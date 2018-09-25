@@ -12,7 +12,7 @@
 - 轻量，少造轮子，多复用标准库和优秀开源项目
 
 
-## 测试用例模型
+## rtsf-测试用例模型
 
 > 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型 
 
@@ -32,7 +32,8 @@
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
 
 ```
-# yaml测试用例，模型示例:
+# yaml基本测试模型
+# 示例:
 - project:
     name: xxx系统
     module: 登陆模块-功能测试
@@ -86,8 +87,8 @@
         - webdriver:
             action: ${refresh}
         
-        # mobiledriver 测试android UI 时使用
-        - mobiledriver:
+        # appdriver 测试android UI 时使用
+        - appdriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
@@ -108,11 +109,11 @@
 ```
 
 模型解释:
-- project: name->待测系统的名称; module->测试集名称（一个文件就一个测试集合， 目前，还不支持测试套件的嵌套）
+- project: name->待测系统的名称; module->测试集名称
 - case: 必填(id->测试用例id; desc->测试用例的描述;steps->测试步骤;verify->校验),选填(responsible->测试责任人;tester->测试执行人;pre_command->测试前置条件(前置钩子);post_command->测试后置条件(后置钩子))
-- case-steps: request->http测试; webdriver->web UI测试; mobiledriver->移动端app测试;wpfdriver->使用wpf技术的pc客户端测试;mfcdriver->使用mfc技术的pc客户端测试)
+- case-steps: request->http测试; webdriver->web UI测试; appdriver->移动端app测试;wpfdriver->使用wpf技术的pc客户端测试;mfcdriver->使用mfc技术的pc客户端测试)
 
-## 测试用例分层
+## rtsf-测试用例分层
 
 - 测试用例分层，是指在testset的测试集中，添加了api和suite的测试的测试用例.
 - 如果，测试用例使用了 api 或者 suite等分层关键字，那么程序会在在指定运行的测试用例同级目录的 dependencies文件夹中寻找api和suite
@@ -157,8 +158,8 @@
         - webdriver:
             action: ${refresh}
         
-        # mobiledriver 测试android UI 时使用
-        - mobiledriver:
+        # appdriver 测试android UI 时使用
+        - appdriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
@@ -227,8 +228,8 @@
         - webdriver:
             action: ${refresh}
         
-        # mobiledriver 测试android UI 时使用
-        - mobiledriver:
+        # appdriver 测试android UI 时使用
+        - appdriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
@@ -249,24 +250,60 @@
         
 ```
 
-## 测试执行方法
+## rtsf-使用方法
 
-> 执行测试,有两个步骤: 1. 重写 rtsf.p_executer.Runner.run_test 函数. 2. 运行指定的测试文件或者测试文件所在的文件夹
+- rtsf提供入口，允许自定义执行模块的扩展，这个过程有点类似python中重写threading.Thread类.
+- 不同的是，rtsf需要重写rtsf.p_executer.Runner.run_test方法
 
-### 默认情况下，未重写Runner.run_test
-
-> TestRunner()的参数，默认使用Runner实例化对象，
+### Runner.run_test重写
+自定义case运行过程，就是重写 Runner.run_test的过程，是使用rtsf的主要工作
 
 ```
+# 示例:
+from rtsf.p_executer import Runner
+class SubRunner(Runner):      
+    
+    def __init__(self):
+        super(SubRunner,self).__init__()        
+        
+    def run_test(self, testcase_dict, driver_map):
+        fn, _ = driver_map
+        tracer = self.tracers[fn]
+        parser = self.parser
+        
+```
+- run_test(testcase_dict, driver_map), rtsf在执行测试的时候，调用run_test方法，传入testcase_dict和driver_map
+- testcase_dict参数，是当前要执行的测试用例，rtsf将会传入字典格式
+- driver_map参数，是当前要执行的设备，rtsf将会传入一个列表，格式如:("192.168.0.1:5555":selenium_driver), 默认情况下，("",None)
+- self.parser,Runner中继承的属性， 解析测试用例的实例，控制全局上下文和映射关键字与执行函数
+- self.tracers,Runner中继承的属性, 跟踪设备执行日志的实例，详细记录每个用例的执行过程
+
+> 注意: 重写的时候，第一个参数，是单个case，不是所有case，**只需要写一个case的执行逻辑**
+
+另外，使用rtsf,我这里已经写了几个项目,供大家参考和使用:
+
+- [http/https自动化测试](https://github.com/RockFeng0/rtsf-http)
+- [web ui自动化测试](https://github.com/RockFeng0/rtsf-web)
+- [android ui自动化测试](https://github.com/RockFeng0/rtsf-app)
+- 桌面客户端(WPF技术)自动化测试-敬请期待
+- 桌面客户端(MFC技术)自动化测试-敬请期待
+
+
+### TestRunner执行测试
+
+- TestRunner(runner = Runner),runner参数用于指定重写了Runner.run_test的Runner子类,用于运行case,默认值为Runner
+- TestRunner.run, 该方法用于运行指定yaml的case文件，或者运行指定文件夹路径中的yaml和json,如c:\case目录下*.yaml和*.json
+- TestRunner。gen_html_report,方法用于生成测试报告，报告路径是yaml文件所在路径
+
+```
+# 示例:
 # test.py
 # coding:utf-8
 from rtsf.p_executer import TestRunner,Runner
 
 # 执行测试, 指定测试文件test.yaml
-runner = TestRunner(runner = Runner)).run('test.yaml')
-
-# 也可以指定测试用例，指定目录,如c:\case目录下*.yaml和*.json
-# runner = TestRunner(runner = Runner)).run(r'c:\case')
+runner = TestRunner(runner = Runner).run('test.yaml')
+# runner = TestRunner(runner = Runner).run(r'c:\case')
 
 # 生成测试报告
 html_report = runner.gen_html_report()
@@ -276,111 +313,4 @@ print(html_report)
 
 ```
 
-> 测试用例如下：
 
-```
-# test.yaml
-
-- project:
-    name: rtsf测试框架-测试
-    module: 测试执行方法
-    
-- case:
-    id: ATP-1
-    desc: 打开百度
-    glob_var:
-        passwd: 123@Qwe
-    glob_regx:
-        rex_name: 'id=su value=([\w\-\.\+/=]+)'
-    pre_command: 
-        - ${SetVar(username, luokefeng)}
-        - ${SetVar(password, $passwd)}
-    steps:
-        - request:
-            url: https://www.baidu.com          
-            method: GET
-    post_command:
-        - ${DyStrData(baidu_name,$rex_name)}
-    verify:
-        - ${VerifyCode(200)}
-        - ${VerifyVar(baidu_name, 百度一下)}
-        - ${VerifyVar(baidu_name, 123)}
-
-```
-
-
-### 自定义执行方法，重写Runner.run_test
-
-> 自定义run_test，编写测试用例的执行过程
-
- 注意: 重写的时候，第一个参数，是单个case，不是所有case，**只需要写一个case的执行逻辑**； 重写好 run_test是使用rtsf的主要工作。
-
-```
-### 类似LocalDriver如下方式，适用于非分布式或者单进程的测试情况
-class LocalDriver(Runner):
-    
-    def __init__(self):
-        super(LocalDriver,self).__init__()
-        
-        # 默认就是，True， 本地运行;  False，则grid模式，多进程运行
-        self._local_driver = True
-        
-        # 设置驱动器;  本地运行，默认值是： [("",None)];  格式为 `(device_id, driver)`
-        self._default_drivers = [("",None)]
-        
-        # 设置设备；  本地运行， 默认值是[""]
-        self._default_devices = [""]
-        
-        
-    def run_test(self, testcase_dict, driver_map):
-        # 这里编写，如何运行测试用例
-        # 还记得，yaml模型介绍的时候，说的执行顺序吗？    pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
-        device_id, driver = driver_map
-        reporter = self.tracers[device_id]
-        
-        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
-        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
-        
-        reporter.section(u"------------section ok")
-        reporter.step(u"step ok")
-        reporter.normal(u"normal ok")
-        reporter.stop()
-        
-        return reporter                   
-
-### 类似RemoteDriver如下方式，适用分布式的测试，比如 selenium grid模式或者appium多设备并行测试的情况 
-class RemoteDriver(_Driver):
-    
-    def __init__(self):
-        super(RemoteDriver,self).__init__()        
-        self._local_driver = False
-        self._default_devices =[]        
-        self._default_drivers = []        
-        
-        executors = ["http://192.168.1.1:5555","http://192.168.1.2:5555"]
-        for executor in executors:
-            fn = FileSystemUtils.get_legal_filename(executor)
-            self._default_devices.append(fn)
-            
-            # remote_webdriver_or_others 是指，传递一些测试用的驱动，如 webdriver.remote等   
-            self._default_drivers.append((fn, remote_webdriver_or_others))   
-                        
-    def run_test(self, testcase_dict, driver_map):
-        # 这里编写，如何运行测试用例
-        # 还记得，yaml模型介绍的时候，说的执行顺序吗？    pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
-        
-        # 这里的driver ,就是  remote_webdriver_or_others定义的driver
-        device_id, driver = driver_map
-        reporter = self.tracers[device_id]
-        
-        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
-        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
-        
-        reporter.section(u"------------section ok")
-        reporter.step(u"step ok")
-        reporter.normal(u"normal ok")
-        reporter.stop()
-        
-        return reporter
-```
-> self.parser 解析测试用例的实例，控制全局上下文和映射关键字与执行函数； self.tracer 跟踪执行日志的实例，详细记录每个用例的执行过程，是很关键的；
