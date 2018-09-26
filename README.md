@@ -16,15 +16,58 @@
 
 > 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型 
 
-### 基本测试用例-yaml模型介绍
 
-- 用例模型，基本保持[rock4automation项目](https://github.com/RockFeng0/rock4automation)的case模型
-- 其中的变量和函数的替换，参照了httprunner项目的格式  $VAR ${FUNC}, 该格式取代了我的[rock4automation项目](https://github.com/RockFeng0/rock4automation)中的， #var# 等替换规则
-- 变量的引用: $VAR  其中，VAR为字母、数字、下划线组成的变量名.  正则表示为:  [a-zA-Z0-9_]
-- 函数的引用: ${FUNC}    其中, FUNC为字母、数字、下划线、横线、点号、等号、逗号组成的函数. 示例:  /api/${add(1, 2)}?_t=${get_timestamp()}   正则表示为: [a-zA-Z0-9.-_=,]
-- 如果函数引用的过程中，参数含有特殊字符，将不会被识别， 解决方法是，使用全局变量.   示例,如:  a='@#$%^&'; $print($a)   
+### 测试用例基本结构
+用例模型，基本保持[rock4automation项目](https://github.com/RockFeng0/rock4automation)的case模型
+
+rtsf约定的基本结构如下，如下
+
+```
+- project:
+    name:
+    module:
+- case:    
+    id:
+    desc:
+    responsible:
+    tester:
+    pre_command:
+    steps:
+    post_command:
+    verify:
+- case:    
+    id:
+    desc:
+    steps:
+...
+```
 
 > 执行顺序  pre_command(List) -> steps(List) -> post_command(List) -> verify(List)
+
+| 字段                                        | 描述                                        | 类型              |
+| ------------- |:-------------:| -----:|
+| name          | 项目名称或待测系统名称(必填)| 字符串       |
+| module        | 测试集或功能模块名称(必填) | 字符串       |
+| id            | 测试用例ID，唯一性(必填)  | 字符串       |
+| desc          | 描述 用例 (必填)        | 字符串       |
+| responsible   | 用例责任人或者编写人(选填) | 字典           |
+| tester        | 用例执行者或者测试人(选填) | 字典           |
+| pre_command   | 测试的前置步骤或钩子(选填) | 列表           |
+| steps         | 测试步骤 (必填)         | 列表           |
+| post_command  | 测试的后置步骤或钩子(选填) | 列表           |
+| verify        | 校验  (选填)           | 列表           |
+
+### 函数及变量替换的格式
+
+变量和函数的替换，参照了httprunner项目的格式   该格式取代了我的[rock4automation项目](https://github.com/RockFeng0/rock4automation)中的， #var# 等替换规则
+
+- 引用函数:   ${function_str}
+- 引用变量:   $variable_str
+- function_str 为字母、数字、下划线、横线、点号、等号、逗号组成的函数. 示例:  /api/${add(1, 2)}?_t=${get_timestamp()}   正则表示为: [a-zA-Z0-9.-_=,]
+- function_str若含有特殊字符，将不会被识别， 解决方法是，使用全局变量.   示例,如:  a='@#$%^&'; $print($a)
+- variable_str 为字母、数字、下划线组成的变量名.  正则表示为:  [a-zA-Z0-9_]  
+
+**测试用例模型示例**
 
 ```
 # yaml基本测试模型
@@ -102,11 +145,6 @@
     verify:
         - VerifyCode("200")
 ```
-
-模型解释:
-- project: name->待测系统的名称; module->测试集名称
-- case: 必填(id->测试用例id; desc->测试用例的描述;steps->测试步骤;verify->校验),选填(responsible->测试责任人;tester->测试执行人;pre_command->测试前置条件(前置钩子);post_command->测试后置条件(后置钩子))
-- case-steps: request->http测试; webdriver->web UI测试; appdriver->移动端app测试;wpfdriver->使用wpf技术的pc客户端测试;mfcdriver->使用mfc技术的pc客户端测试)
 
 ## rtsf-测试用例分层(测试组件化)
 
