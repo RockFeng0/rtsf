@@ -26,9 +26,8 @@ rtsf约定的基本结构如下，如下
 - project:
     name:
     module:
-- case:    
-    id:
-    desc:
+- case:
+    name:
     responsible:
     tester:
     pre_command:
@@ -48,8 +47,9 @@ rtsf约定的基本结构如下，如下
 | ------------- |:-------------:| -----:|
 | name          | 项目名称或待测系统名称(必填)| 字符串       |
 | module        | 测试集或功能模块名称(必填) | 字符串       |
-| id            | 测试用例ID，唯一性(必填)  | 字符串       |
-| desc          | 描述 用例 (必填)        | 字符串       |
+| id            | 测试用例ID(非约定) | 字符串       |
+| desc          | 描述 用例 (非约定)  | 字符串       |
+| name          | 描述 用例 (必填)，唯一性(必填) | 字符串       |
 | responsible   | 用例责任人或者编写人(选填) | 字典           |
 | tester        | 用例执行者或者测试人(选填) | 字典           |
 | pre_command   | 测试的前置步骤或钩子(选填) | 列表           |
@@ -71,36 +71,38 @@ rtsf约定的基本结构如下，如下
 
 ```
 # yaml基本测试模型
-# 示例:
+# 分层用例，示例:
 - project:
     name: xxx系统
-    module: 登陆模块-功能测试
-
-- case:
-    id: ATP-1
-    desc: 使用api示例
+    module: 分层用例-api-suite
+    
+- case:    
+    # name 必填    ->测试用例名称,需确保唯一性. 调用api时，如果api定义了name，取api中name，否则，取case中name
+    name: /api_name
     
     # 用例分层-使用 api时，必填
     api: test_api()
 
-- case:
-    id: ATP-2
-    desc: 使用suite示例, 当前case中的id 和desc 这些键值对，都无效
+- case:    
+    # name 必填    ->测试用例名称,需确保唯一性. 调用suite时，name取suite中的name
+    name: /suite_name
     
     # 用例分层-使用 suite时，必填
     suite: test_suite()
     
 - case:
-    # id 必填
+    # id  desc 选填，非约定字段
     id: ATP-3
-    # desc 必填
-    desc: 测试用例-模板格式的设计-模板（全字段）
+    desc: testset测试用例-模板（全字段）
+    
+    # name 必填    ->测试用例名称,需确保唯一性
+    name: /baidu_test3
     
     # responsible 选填
-    responsible: rockfeng0
+    responsible: 罗科峰
     
     # tester 选填
-    tester: rockfeng0
+    tester: 罗科峰
     
     # pre_command 选填
     pre_command:
@@ -125,8 +127,8 @@ rtsf约定的基本结构如下，如下
         - webdriver:
             action: ${refresh}
         
-        # appdriver 测试android UI 时使用
-        - appdriver:
+        # mobiledriver 测试android UI 时使用
+        - mobiledriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
@@ -170,6 +172,13 @@ rtsf约定的基本结构如下，如下
     # def 必填
     def: test_api()    
     
+    # id  desc 选填，非约定字段
+    id: ATP-1
+    desc: api测试用例-模板（字段与testset测试用例相同）
+    
+    # name 选填
+    name: baidu_test1
+    
     # pre_command 选填
     pre_command:
         - Set(passwd = "123456")
@@ -193,8 +202,8 @@ rtsf约定的基本结构如下，如下
         - webdriver:
             action: ${refresh}
         
-        # appdriver 测试android UI 时使用
-        - appdriver:
+        # mobiledriver 测试android UI 时使用
+        - mobiledriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
@@ -228,17 +237,19 @@ rtsf约定的基本结构如下，如下
 - project:
     def: test_suite()
             
-- case:
-    # id 必填
+- case:    
+    # id  desc 选填，非约定字段
     id: ATP-2
-    # desc 必填
     desc: suite测试用例-模板（字段与testset测试用例相同）
     
+    # name 必填    ->测试用例名称,需确保唯一性
+    name: /baidu_test2
+    
     # responsible 选填
-    responsible: rockfeng0
+    responsible: 罗科峰
     
     # tester 选填
-    tester: rockfeng0
+    tester: 罗科峰
     
     # pre_command 选填
     pre_command:
@@ -263,8 +274,8 @@ rtsf约定的基本结构如下，如下
         - webdriver:
             action: ${refresh}
         
-        # appdriver 测试android UI 时使用
-        - appdriver:
+        # mobiledriver 测试android UI 时使用
+        - mobiledriver:
             action: ${refresh}
         
         # wpfdriver 测试pc wpf技术的客户端 ui 时使用    
