@@ -71,7 +71,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.case_api_and_suite = r'data\testcases\case_model-api&suite.yaml'
     
     def test_load_api_file(self):
-        YamlCaseLoader.load_api_file(r'data\dependencies\api\api_model.yaml')
+        YamlCaseLoader.load_api_file(r'data\testcases\dependencies\api\api_model.yaml')
         
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
@@ -90,7 +90,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
         self.assertEqual("test_suite" in YamlCaseLoader.overall_def_dict["suite"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["suite"]["test_suite"], True)
-        
+                
     def test_load_file(self):        
         test_cases = YamlCaseLoader.load_file(self.case)
         self.assertIn("file_path", test_cases)
@@ -105,11 +105,9 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertIn("project", test_cases)
         self.assertIn("cases", test_cases)
         self.assertEqual(test_cases["name"], "分层用例-api-suite")
-        
         all_cases_name = [case["name"] for case in test_cases["cases"]]
-        expected = ("ATP-1[使用api示例]", "ATP-2[suite测试用例-模板（字段与testset测试用例相同）]", "ATP-2[testset测试用例-模板（全字段）]")
-        self.assertEqual(set(all_cases_name), set(expected))
-        
+        expected = ("baidu_test1","baidu_test2","baidu_test3")
+        self.assertEqual(set(all_cases_name), set(expected))        
     
     def test_load_files_from_file(self):
         # file_abs_path.    Same as load_file
@@ -241,10 +239,10 @@ class TestTestCaseParser(unittest.TestCase):
 
 if __name__ == '__main__':
     logger.setup_logger("debug")
-#     unittest.main(verbosity=2)
+    unittest.main(verbosity=2)
 
-    suite = unittest.TestSuite()
-#     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYaml))
-    suite.addTest(TestPublicFuction("test_substitute_variables_with_mapping"))    
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
+#     suite = unittest.TestSuite()
+# #     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
+#     suite.addTest(TestYamlCaseLoader("test_load_files_from_dir"))    
+#     runner = unittest.TextTestRunner(verbosity=2)
+#     runner.run(suite)

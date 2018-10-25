@@ -1,11 +1,13 @@
 - project:
     def: test_suite()
             
-- case:
-    # id 必填
+- case:    
+    # id  desc 选填，非约定字段
     id: ATP-2
-    # desc 必填
     desc: suite测试用例-模板（字段与testset测试用例相同）
+    
+    # name 必填    ->测试用例名称,需确保唯一性
+    name: /baidu_test2
     
     # responsible 选填
     responsible: 罗科峰
