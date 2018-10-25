@@ -547,7 +547,6 @@ class YamlCaseLoader(object):
             "project": {},
             "cases": [],
         }
-        word_p = "^[\w-]+$"
         
         if not os.path.isfile(yaml_file):        
             raise p_exception.FileNotFoundError("Not found testcase file {}.".format(yaml_file))
@@ -569,13 +568,17 @@ class YamlCaseLoader(object):
                     testset["name"] = test_block.get("module", "Default Test Set")
     
                 elif key == "case":
-                    case_id = test_block.pop("id","")
-                    desc = test_block.pop("desc","")
-                    if not case_id:
-                        raise p_exception.ModelFormatError("Some cases do not have 'case_id'.")
-                    if not re.search(word_p,case_id):
-                        raise p_exception.ModelFormatError("Invalid case_id: {}".format(case_id))                    
-                    test_block["name"] = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id, desc))
+#                     case_id = test_block.pop("id","")                    
+#                     if not case_id:
+#                         raise p_exception.ModelFormatError("Some cases do not have 'case_id'.")
+#                     if not re.search("^[\w-]+$",case_id):
+#                         raise p_exception.ModelFormatError("Invalid case_id: {}".format(case_id))
+                    
+                    name = test_block.get("name")
+                    if not name:
+                        raise p_exception.ModelFormatError("Some cases do not have 'name'.")
+                    
+                    test_block["name"] = FileSystemUtils.get_legal_filename(name)
                     
                     if "api" in test_block:
                         ref_call = test_block["api"]
