@@ -1,0 +1,26 @@
+            
+- project:
+    name: xxx项目
+    module: xxx项目-首页功能
+    data:
+        - csv: devices.csv
+          by: Random      
+        - csv: username_password.csv
+        
+- case:
+    name: /baidu_test
+    steps:
+        - request:
+            url: https://www.baidu.com
+            method: GET
+    verify:
+        - ${VerifyCode(200)}
+
+- case:
+    name: /163_test      
+    steps:
+        - request:
+            url: https://www.163.com              
+            method: GET
+    verify:
+        - ${VerifyCode(200)}

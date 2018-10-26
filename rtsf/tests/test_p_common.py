@@ -20,6 +20,7 @@ Provide a function for the automation test
 
 from rtsf.p_common import CommonUtils
 from rtsf.p_common import FileSystemUtils
+from rtsf.p_common import FileUtils
 from rtsf.p_common import IntelligentWaitUtils
 from rtsf.p_common import DateTimeUtils
 from rtsf.p_common import ZipUtils
@@ -39,6 +40,21 @@ class TestCommonUtils(unittest.TestCase):
         result = CommonUtils.gen_random_string(5)
         self.assertEqual(isinstance(result, str) and len(result) == 5, True)
     
+    def test_gen_cartesian_product(self):
+        a = [{"a": 1}, {"a": 2}]
+        b = [
+                {"x": 111, "y": 112},
+                {"x": 121, "y": 122}
+            ]
+        expect_result = [
+                {'a': 1, 'x': 111, 'y': 112},
+                {'a': 1, 'x': 121, 'y': 122},
+                {'a': 2, 'x': 111, 'y': 112},
+                {'a': 2, 'x': 121, 'y': 122}
+            ]
+        
+        self.assertEqual(CommonUtils.gen_cartesian_product(a, b), expect_result)        
+        
     def test_convert_to_order_dict(self):
                 
         dict1 = dict(zip(("a","b","c"),("A","B","C")))
@@ -72,6 +88,35 @@ passwd = 123456
         FileSystemUtils.force_delete_file(fn)
     
 
+class TestFileUtils(unittest.TestCase):
+    
+    def setUp(self):
+        self.case = r'data\testcases\case_model.yaml' 
+        self.csv = r'data\testcases\username_password.csv'
+        
+    def test_load_folder_files(self):        
+        
+        cases_path = r'test_tmp\testcases'
+        p1 = os.path.join(cases_path, "t1")
+        p2 = os.path.join(cases_path, "t2")
+         
+        FileSystemUtils.mkdirs(p1)
+        FileSystemUtils.mkdirs(p2)
+        shutil.copyfile(self.case, os.path.join(cases_path, "t.yaml"))
+        shutil.copyfile(self.case, os.path.join(p1, "t1.yaml"))
+        shutil.copyfile(self.case, os.path.join(p2, "t2.yaml"))
+        
+        
+        result1 = FileUtils.load_folder_files(p1, recursive = False)        
+        self.assertEqual(len(result1), 1)
+        
+        result2 = FileUtils.load_folder_files(cases_path, recursive = True)
+        self.assertEqual(len(result2), 3)
+        
+        result3 = FileUtils.load_file(self.csv)
+        self.assertIsInstance(result3, list)
+        self.assertIsInstance(result3[0], dict)        
+        
 class TestFileSystemUtils(unittest.TestCase):
     
     def setUp(self):
@@ -348,12 +393,12 @@ class TestProgressBarUtils(unittest.TestCase):
     
         
 if __name__ == "__main__":
-#     suite = unittest.TestSuite()
-#     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestProgressBarUtils))
-#     
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)
-    unittest.main(verbosity=2)
+    suite = unittest.TestSuite()
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFileUtils))
+#     suite.addTest(TestCommonUtils("test_gen_cartesian_product"))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
+#     unittest.main(verbosity=2)
     
     
     

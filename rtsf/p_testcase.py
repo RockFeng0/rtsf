@@ -18,13 +18,13 @@ v1.0    Original version to use
 UI and Web Http automation frame for python.
 
 '''
-import yaml
-import json
-import os,re,io,ast
+
+import os,re,random,ast
 from rtsf.p_applog import logger
 from rtsf import p_exception,p_compat
-from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils
+from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils,FileUtils
 from rtsf.p_compat import numeric_types,builtin_str
+from httprunner.testcase import gen_cartesian_product
 
 
 variable_regexp = r"\$([\w_]+)"
@@ -176,6 +176,27 @@ def substitute_variables_with_mapping(content, mapping):
 
     return content
 
+def parse_project_data(data, testset_path=None):
+    """ parse project data and generate cartesian product
+    @param data: list type            
+            e.g.
+                [
+                    {'csv': 'username_password.csv', 'by': 'Sequential'}, 
+                    {'csv': 'devices.csv', 'by': 'Random'}
+                ]
+    @param testset_path: testset file path, used for locating csv file
+    @return cartesian product in list
+    """
+    testcase_parser = TestCaseParser(file_path=testset_path)
+    
+    parsed_parameters_list = []
+    for da in data:
+        if isinstance(da, dict) and da.get("csv"):
+            csv_list_of_dict_data = testcase_parser.get_csv_data(da.get('csv'), fetch_method = da.get("by",'Sequential'))
+            parsed_parameters_list.append(csv_list_of_dict_data)
+            
+    return CommonUtils.gen_cartesian_product(*parsed_parameters_list)
+
 class TestCaseParser(object):
 #     def __init__(self, action_class_name, preference_action_file):        
 #         self._functions, self._variables = {}, {}
@@ -219,7 +240,25 @@ class TestCaseParser(object):
         @return: object of func_name
         '''
         return self._get_bind_item("function", func_name)
-        
+    
+    def get_csv_data(self, csv_file_name, fetch_method="Sequential"):
+        ''' get csv data
+        @note:  first line should be define variable in csv file
+        @param csv_file_name: csv file name
+        @param fetch_method: Sequential or Random
+        @return: list of dict
+        '''
+        parameter_file_path = os.path.join(
+            os.path.dirname(self.file_path),
+            "{}".format(csv_file_name)
+        )
+        csv_content_list = FileUtils.load_file(parameter_file_path)
+
+        if fetch_method.lower() == "random":
+            random.shuffle(csv_content_list)
+
+        return csv_content_list
+    
     def _get_bind_item(self, item_type, item_name):        
         
         if item_type == "function":            
@@ -330,103 +369,7 @@ class TestCaseParser(object):
                 logger.log_info("eval variables result: {} -> {}".format(tmp, content))
                 
         return content
-    
-class Yaml(object):
 
-    @staticmethod
-    def _check_format(file_path, content):
-        """ check testcase format if valid
-        """
-        if not content:
-            # testcase file content is empty
-            err_msg = u"Testcase file content is empty: {}".format(file_path)
-            logger.log_error(err_msg)
-            raise p_exception.FileFormatError(err_msg)
-
-        elif not isinstance(content, (list, dict)):
-            # testcase file content does not match testcase format
-            err_msg = u"Testcase file content format invalid: {}".format(file_path)
-            logger.log_error(err_msg)
-            raise p_exception.FileFormatError(err_msg)
-
-    @staticmethod
-    def _load_yaml_file(yaml_file):
-        """ load yaml file and check file content format
-        """
-        with io.open(yaml_file, 'r', encoding='utf-8') as stream:
-            yaml_content = yaml.load(stream)
-            Yaml._check_format(yaml_file, yaml_content)
-            return yaml_content
-
-    @staticmethod
-    def _load_json_file(json_file):
-        """ load json file and check file content format
-        """
-        with io.open(json_file, encoding='utf-8') as data_file:
-            try:
-                json_content = json.load(data_file)
-            except p_exception.JSONDecodeError:
-                err_msg = u"JSONDecodeError: JSON file format error: {}".format(json_file)
-                logger.log_error(err_msg)
-                raise p_exception.FileFormatError(err_msg)
-
-            Yaml._check_format(json_file, json_content)
-            return json_content
-        
-    @staticmethod
-    def load_file(file_path):
-        if not os.path.isfile(file_path):
-            raise p_exception.FileNotFoundError("{} does not exist.".format(file_path))
-
-        file_suffix = os.path.splitext(file_path)[1].lower()
-        if file_suffix == '.json':
-            return Yaml._load_json_file(file_path)
-        elif file_suffix in ['.yaml', '.yml']:
-            return Yaml._load_yaml_file(file_path)
-        else:
-            # '' or other suffix
-            err_msg = u"Unsupported file format: {}".format(file_path)
-            logger.log_warning(err_msg)
-            return []
-
-    @staticmethod
-    def load_folder_files(folder_path, recursive=True):
-        """ load folder path, return all files in list format.
-        @param
-            folder_path: specified folder path to load
-            recursive: if True, will load files recursively
-        @return: 
-             all yaml files or json files with relative path in list format 
-        """
-        if isinstance(folder_path, (list, set)):
-            files = []
-            for path in set(folder_path):
-                files.extend(Yaml.load_folder_files(path, recursive))
-
-            return files
-
-        if not os.path.exists(folder_path):
-            return []
-
-        file_list = []
-
-        for dirpath, dirnames, filenames in os.walk(folder_path):
-            filenames_list = []
-
-            for filename in filenames:
-                if not filename.endswith(('.yml', '.yaml', '.json')):
-                    continue
-
-                filenames_list.append(filename)
-
-            for filename in filenames_list:
-                file_path = os.path.join(dirpath, filename)
-                file_list.append(file_path)
-
-            if not recursive:
-                break
-            
-        return file_list
 
 class YamlCaseLoader(object):
     overall_def_dict = {
@@ -493,11 +436,11 @@ class YamlCaseLoader(object):
         suite_def_folder = os.path.join(path, "suite")
                 
         # load api definitions
-        for test_file in Yaml.load_folder_files(api_def_folder):
+        for test_file in FileUtils.load_folder_files(api_def_folder):
             YamlCaseLoader.load_api_file(test_file)
 
         # load suite definitions        
-        for suite_file in Yaml.load_folder_files(suite_def_folder):
+        for suite_file in FileUtils.load_folder_files(suite_def_folder):
             suite = YamlCaseLoader.load_file(suite_file)
             if "def" not in suite["project"]:
                 raise p_exception.ParamsError("def missed in suite file: {}!".format(suite_file))
@@ -513,7 +456,7 @@ class YamlCaseLoader(object):
             @param file_path: yaml file path
             @return: store in overall_def_dict["api"]
         """
-        api_items = Yaml.load_file(file_path)
+        api_items = FileUtils.load_file(file_path)
         if not isinstance(api_items, list):
             raise p_exception.FileFormatError("API format error: {}".format(file_path))
 
@@ -552,7 +495,7 @@ class YamlCaseLoader(object):
             raise p_exception.FileNotFoundError("Not found testcase file {}.".format(yaml_file))
         
         try:
-            test_cases = Yaml.load_file(yaml_file)
+            test_cases = FileUtils.load_file(yaml_file)
             logger.log_debug("Yaml raw dict: {}".format(test_cases))
             
             for item in test_cases:
@@ -637,7 +580,7 @@ class YamlCaseLoader(object):
             return YamlCaseLoader.testcases_cache_mapping[path]
 
         if os.path.isdir(path):
-            files_list = Yaml.load_folder_files(path)
+            files_list = FileUtils.load_folder_files(path)
             testcases_list = YamlCaseLoader.load_files(files_list)
 
         elif os.path.isfile(path):

@@ -19,7 +19,7 @@ Provide a function for the automation test
 '''
 
 import unittest, shutil,os
-from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, Yaml, substitute_variables_with_mapping
+from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, substitute_variables_with_mapping,parse_project_data
 from rtsf.p_common import FileSystemUtils
 from rtsf.p_applog import logger
 
@@ -38,32 +38,42 @@ class TestPublicFuction(unittest.TestCase):
         print(result)
         expected = {'request': {'url': '/api/users/1000', 'headers': {'token': '$token', 'username': 'luokefeng', 'uid': 1000}}}
         self.assertEqual(result, expected)
-                        
-
-class TestYaml(unittest.TestCase):
-    
-    def setUp(self):
-        self.case = r'data\testcases\case_model.yaml' 
         
-    def test_load_folder_files(self):        
+    def test_parse_project_data(self):
+        file_path = r'data\testcases\data_driver.yaml'
+        sequential_data = [
+                    {'csv': 'username_password.csv', 'by': 'Sequential'}, 
+                    {'csv': 'devices.csv', 'by': 'Sequential'}
+                ]
         
-        cases_path = r'test_tmp\testcases'
-        p1 = os.path.join(cases_path, "t1")
-        p2 = os.path.join(cases_path, "t2")
-         
-        FileSystemUtils.mkdirs(p1)
-        FileSystemUtils.mkdirs(p2)
-        shutil.copyfile(self.case, os.path.join(cases_path, "t.yaml"))
-        shutil.copyfile(self.case, os.path.join(p1, "t1.yaml"))
-        shutil.copyfile(self.case, os.path.join(p2, "t2.yaml"))
+        sequential_expected_result = [{
+                                        'username': '15312341230',
+                                        'password': '1234567890',
+                                        'devices': 'android-0'
+                                    }, {
+                                        'username': '15312341230',
+                                        'password': '1234567890',
+                                        'devices': 'android-1'
+                                    }, {
+                                        'username': '15312341230',
+                                        'password': '1234567890',
+                                        'devices': 'android-2'
+                                    }, {
+                                        'username': '15312341231',
+                                        'password': '1234567891',
+                                        'devices': 'android-0'
+                                    }, {
+                                        'username': '15312341231',
+                                        'password': '1234567891',
+                                        'devices': 'android-1'
+                                    }, {
+                                        'username': '15312341231',
+                                        'password': '1234567891',
+                                        'devices': 'android-2'
+                                    }]
         
-        
-        result1 = Yaml.load_folder_files(p1, recursive = False)        
-        self.assertEqual(len(result1), 1)
-        
-        result2 = Yaml.load_folder_files(cases_path, recursive = True)
-        self.assertEqual(len(result2), 3)
-        
+        self.assertEqual(parse_project_data(sequential_data, testset_path = file_path), sequential_expected_result)
+                                       
 class TestYamlCaseLoader(unittest.TestCase):
     
     def setUp(self):
@@ -196,6 +206,17 @@ class TestTestCaseParser(unittest.TestCase):
         
         self.assertEqual(parser.get_bind_function("f1")(), "f1")
         
+    def test_get_csv_data(self):
+        parser = TestCaseParser(file_path = self._file_path)
+        
+        result1 = parser.get_csv_data("username_password.csv")        
+        self.assertIsInstance(result1, list)
+        self.assertIsInstance(result1[0], dict) 
+        
+        result2 = parser.get_csv_data("username_password.csv","Random")
+        self.assertIsInstance(result2, list)
+        self.assertIsInstance(result2[0], dict)    
+                
     def test_eval_content_with_bind_actions_normal_struct(self):
         parser = TestCaseParser(variables = self._variables, 
                                 functions= self._functions,
@@ -238,11 +259,11 @@ class TestTestCaseParser(unittest.TestCase):
         self.assertEqual(actual, expect)       
 
 if __name__ == '__main__':
-    logger.setup_logger("debug")
-    unittest.main(verbosity=2)
+#     logger.setup_logger("debug")
+#     unittest.main(verbosity=2)
+#     suite = unittest.TestSuite()
+    #suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
+    suite.addTest(TestPublicFuction("test_parse_project_data"))    
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)
 
-#     suite = unittest.TestSuite()
-# #     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
-#     suite.addTest(TestYamlCaseLoader("test_load_files_from_dir"))    
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)
