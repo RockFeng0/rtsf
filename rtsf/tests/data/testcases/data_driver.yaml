@@ -8,7 +8,7 @@
         - csv: username_password.csv
         
 - case:
-    name: /baidu_test
+    name: /baidu_test_$username-$password-$devices
     steps:
         - request:
             url: https://www.baidu.com
@@ -17,7 +17,7 @@
         - ${VerifyCode(200)}
 
 - case:
-    name: /163_test      
+    name: /163_test_$username-$password-$devices   
     steps:
         - request:
             url: https://www.163.com              

@@ -25,7 +25,7 @@ import multiprocessing,threading
 from functools import partial
 from rtsf.p_applog import logger
 from rtsf.p_tracer import Tracer
-from rtsf.p_testcase import YamlCaseLoader
+from rtsf.p_testcase import YamlCaseLoader,parse_project_data
 from rtsf import p_testcase, p_compat,p_exception
 
 class TestCase(unittest.TestCase):
@@ -71,20 +71,31 @@ class TestSuite(unittest.TestSuite):
         super(TestSuite, self).__init__()
         
         file_path = testset.get("file_path")
-        self.test_runner = test_runner = runner_cls()
+        project   = testset.get("project")
+        testcases = testset.get("cases", [])
         
+        self.test_runner = test_runner = runner_cls()
         if not isinstance(test_runner._default_devices, (list, tuple)):            
             raise TypeError("_default_devices not a list or tuple.")
         
-        test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
-                                tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices},
-                                projinfo = testset.get("project")
-                                )
+        parser = p_testcase.TestCaseParser(file_path = file_path)
+        tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices}
         
-        testcases = testset.get("cases", [])
-        for testcase_dict in testcases:
-            self._add_test_to_suite(testcase_dict["name"], test_runner, testcase_dict.copy())
-
+        project_data = project.pop("data",[])   
+        for data_variables_dict in parse_project_data(project_data, file_path) or [{}]:                        
+            test_runner.init_runner(parser = parser,tracers = tracers,projinfo = project)
+            
+            for testcase_dict in testcases:
+                testcase_dict = testcase_dict.copy()
+                test_runner.parser.update_binded_variables(data_variables_dict)
+                try:
+                    testcase_name = test_runner.parser.eval_content_with_bind_actions(testcase_dict["name"])
+                except (AssertionError, p_exception.ParamsError):
+                    logger.log_warning("failed to eval testcase name: {}".format(testcase_dict["name"]))
+                    testcase_name = testcase_dict["name"]
+                
+                testcase_dict["name"] = testcase_name
+                self._add_test_to_suite(testcase_name, test_runner, testcase_dict)
 
     def _add_test_to_suite(self, testcase_name, test_runner, testcase_dict):
         if p_compat.is_py3:

@@ -28,7 +28,8 @@ from rtsf.p_common import FileSystemUtils
 class TestTestRunner(unittest.TestCase):
     
     def setUp(self):
-        self.case = r'data\testcases\case_model.yaml'        
+        self.case = r'data\testcases\case_model.yaml'
+        self.data_driver_case = r'data\testcases\data_driver.yaml'
         self.testsets = {'file_path': 'C:\\d_disk\\auto\\git\\rtsf\\rtsf\\tests\\data\\testcases\\case_model.yaml', 
                     'project': {'name': 'xxx系统', 'module': '登陆模块-功能测试'}, 
                     'cases': [{'glob_var': {'passwd': '123@Qwe'}, 
@@ -84,23 +85,25 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(len(suite_obj.tests), 2)
     
     def test_TestRunner_from_file(self):
-#         logger.setup_logger("debug")
-        runner = TestRunner(runner = Runner).run(self.case)
+#         runner = TestRunner(runner = Runner).run(self.case)
+#         html_report = runner.gen_html_report()
+#         self.assertEqual(os.path.isfile(html_report[0]), True)
+#         print(html_report)
+#           
+#         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)
+#         self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
+#         self.assertEqual(len(runner._task_suite.tasks), 1)        
+#           
+#         test_runner = runner._task_suite.tasks[0].test_runner        
+#         self.assertEqual(isinstance(test_runner, Runner), True)          
+#         self.assertEqual(isinstance(test_runner.tracers, dict), True)
+#         self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
+#         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
+        runner = TestRunner(runner = Runner).run(self.data_driver_case)
+        print("！！！！",runner._task_suite.tasks[0].tests)
         html_report = runner.gen_html_report()
-        print(html_report)
-          
-        self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)
-        self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
-        self.assertEqual(len(runner._task_suite.tasks), 1)
-        
-          
-        test_runner = runner._task_suite.tasks[0].test_runner        
-        self.assertEqual(isinstance(test_runner, Runner), True)          
-        self.assertEqual(isinstance(test_runner.tracers, dict), True)
-        self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
-        self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
-          
         self.assertEqual(os.path.isfile(html_report[0]), True)
+        print(html_report)
         
     def test_TestRunner_from_dir(self):
 #         logger.setup_logger("debug")
@@ -124,10 +127,10 @@ class TestTestRunner(unittest.TestCase):
         
         
 if __name__ == "__main__":
-#     suite = unittest.TestSuite()
-#     suite.addTest(TestTestRunner("test_TestRunner_from_file"))    
-#     runner = unittest.TextTestRunner(verbosity=2)
-#     runner.run(suite)    
-    unittest.main()
+    suite = unittest.TestSuite()
+    suite.addTest(TestTestRunner("test_TestRunner_from_file"))    
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)    
+#     unittest.main()
     
     
