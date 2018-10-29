@@ -52,6 +52,10 @@ class TestSuite(unittest.TestSuite):
                 "project": {
                     "name": "project name",
                     "module": "testset description"
+                    "data":[
+                                {'csv': 'username_password.csv', 'by': 'Sequential'}, 
+                                {'csv': 'devices.csv', 'by': 'Sequential'}
+                            ]
                 },
                 "cases": [
                     {
@@ -66,37 +70,40 @@ class TestSuite(unittest.TestSuite):
                     testcase12
                 ]
             }
-    """
+    """            
     def __init__(self, testset, runner_cls):
         super(TestSuite, self).__init__()
-        
+         
         file_path = testset.get("file_path")
         project   = testset.get("project")
         testcases = testset.get("cases", [])
-        
-        self.test_runner = test_runner = runner_cls()
-        if not isinstance(test_runner._default_devices, (list, tuple)):            
-            raise TypeError("_default_devices not a list or tuple.")
-        
-        parser = p_testcase.TestCaseParser(file_path = file_path)
-        tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices}
-        
+         
         project_data = project.pop("data",[])   
-        for data_variables_dict in parse_project_data(project_data, file_path) or [{}]:                        
-            test_runner.init_runner(parser = parser,tracers = tracers,projinfo = project)
-            
-            for testcase_dict in testcases:
-                testcase_dict = testcase_dict.copy()
-                test_runner.parser.update_binded_variables(data_variables_dict)
-                try:
-                    testcase_name = test_runner.parser.eval_content_with_bind_actions(testcase_dict["name"])
-                except (AssertionError, p_exception.ParamsError):
-                    logger.log_warning("failed to eval testcase name: {}".format(testcase_dict["name"]))
-                    testcase_name = testcase_dict["name"]
+        for data_variables_dict in parse_project_data(project_data, file_path) or [{}]:            
+            project['data_var'] = data_variables_dict
+             
+            self.test_runner = test_runner = runner_cls()  
+            if not isinstance(test_runner._default_devices, (list, tuple)):            
+                raise TypeError("_default_devices not a list or tuple.")
+                      
+            test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
+                                tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices},
+                                projinfo = project.copy()
+                                )
+                         
+            for testcase_dict in testcases:                
+                self._add_test_to_suite(testcase_dict["name"], test_runner, testcase_dict.copy())
+             
+#             for testcase_dict in testcases:
+#                 test_runner.parser.update_binded_variables(test_runner.proj_info["data_var"])                
+#                 try:
+#                     testcase_name = test_runner.parser.eval_content_with_bind_actions(testcase_dict["name"])
+#                 except (AssertionError, p_exception.ParamsError):
+#                     logger.log_warning("failed to eval testcase name: {}".format(testcase_dict["name"]))
+#                     testcase_name = testcase_dict["name"]
+#                                         
+#                 self._add_test_to_suite(testcase_name, test_runner, testcase_dict.copy())
                 
-                testcase_dict["name"] = testcase_name
-                self._add_test_to_suite(testcase_name, test_runner, testcase_dict)
-
     def _add_test_to_suite(self, testcase_name, test_runner, testcase_dict):
         if p_compat.is_py3:
             TestCase.runTest.__doc__ = testcase_name
@@ -253,7 +260,10 @@ class Runner(object):
         fn, _ = driver_map
         reporter = self.tracers[fn]
         
-        reporter.start(self.proj_info["module"], testcase_dict.get("name",u'rtsf'), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        parser = self.parser        
+        parser.update_binded_variables(self.proj_info["data_var"])
+        
+        reporter.start(self.proj_info["module"], parser.eval_content_with_bind_actions(testcase_dict.get("name",u'rtsf')), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
         reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
         
         reporter.section(u"------------section ok")

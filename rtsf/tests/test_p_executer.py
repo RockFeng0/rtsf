@@ -23,7 +23,7 @@ from rtsf.p_executer import TestRunner,Runner,TaskSuite, TestSuite, init_test_su
 from rtsf.p_report import HtmlReporter
 from rtsf.p_testcase import TestCaseParser
 from rtsf.p_common import FileSystemUtils
-
+from rtsf.p_applog import logger
 
 class TestTestRunner(unittest.TestCase):
     
@@ -100,7 +100,6 @@ class TestTestRunner(unittest.TestCase):
 #         self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
 #         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
         runner = TestRunner(runner = Runner).run(self.data_driver_case)
-        print("！！！！",runner._task_suite.tasks[0].tests)
         html_report = runner.gen_html_report()
         self.assertEqual(os.path.isfile(html_report[0]), True)
         print(html_report)
@@ -127,10 +126,12 @@ class TestTestRunner(unittest.TestCase):
         
         
 if __name__ == "__main__":
+    logger.setup_logger("debug")
+#     unittest.main()
     suite = unittest.TestSuite()
     suite.addTest(TestTestRunner("test_TestRunner_from_file"))    
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)    
-#     unittest.main()
+
     
     

@@ -24,7 +24,6 @@ from rtsf.p_applog import logger
 from rtsf import p_exception,p_compat
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils,FileUtils
 from rtsf.p_compat import numeric_types,builtin_str
-from httprunner.testcase import gen_cartesian_product
 
 
 variable_regexp = r"\$([\w_]+)"
