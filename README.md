@@ -49,7 +49,7 @@ rtsf约定了基本结构，使用rtsf的时候，您**可以扩展约定字段*
 | ------------- |:-------------:| -----:|
 | name          | 项目名称或待测系统名称(必填)| 字符串       |
 | module        | 测试集或功能模块名称(必填) | 字符串       |
-| data          | 数据驱动，引用的数据(选填) | 字典      |
+| data          | 数据驱动，引用的数据(选填) | 列表      |
 
 **case定义测试用例**
 
@@ -161,6 +161,53 @@ rtsf约定了基本结构，使用rtsf的时候，您**可以扩展约定字段*
     verify:
         - VerifyCode("200")
 ```
+
+## rtsf-数据驱动
+
+数据驱动，其实很简单，在yaml的测试用例中，在project块，添加data关键字。
+
+data关键字，以列表形式存在，每个列表项是一个字典，由两个key组成(csv, by)。跟loadrunner中参数化数据一样，csv第一行定义变量，第二行及以下行定义数据驱动的变量值
+- csv后面接文件名称，该文件以csv形式存在于case同一路径。
+- by是指读取csv格式的顺序， Random or Sequential。默认是Sequential，顺序读取。 该参数，可选填
+- 笛卡儿积算法，会对多个data参数进行排列，rtsf会对排列的最终结果遍历执行当前测试集合
+
+```
+# 数据驱动，示例 data_driver.yaml
+- project:
+    name: xxx项目
+    module: xxx项目-首页功能
+    data:
+        - csv: devices.csv
+          by: Random      
+        - csv: username_password.csv
+        
+- case:
+    name: /baidu_test_$username-$password-$devices
+    steps:
+        - request:
+            url: https://www.baidu.com
+            method: GET
+    verify:
+        - ${VerifyCode(200)}
+```
+
+case路径下面，csv文件如下， 笛卡儿积计算的结果，是6条数据，会对case进行6次执行，每次执行会带入相应变量。 相应的报告，总共执行6条用例
+
+```
+# username_password.csv
+username,password
+15312341230,1234567890
+15312341231,1234567891
+
+# devices.csv
+devices
+android-0
+android-1
+android-2
+
+```
+
+
 
 ## rtsf-测试用例分层(测试组件化)
 
