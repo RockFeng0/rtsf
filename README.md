@@ -395,11 +395,10 @@ class SubRunner(Runner):
 
 另外，使用rtsf,我这里已经写了几个项目,供大家参考和使用:
 
-- [http/https自动化测试](https://github.com/RockFeng0/rtsf-http)
-- [web ui自动化测试](https://github.com/RockFeng0/rtsf-web)
-- [android ui自动化测试](https://github.com/RockFeng0/rtsf-app)
-- 桌面客户端(WPF技术)自动化测试-敬请期待
-- 桌面客户端(MFC技术)自动化测试-敬请期待
+- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
+- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
+- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
+- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
 
 
 ### TestRunner执行测试
