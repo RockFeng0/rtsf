@@ -1,6 +1,6 @@
 # 项目初衷
 
-> 为什么已经有了**[rock4automation](https://github.com/RockFeng0/rock4automation)痛点**的自动化测试框架的项目，还要另起一个rtsf项目，并且rtsf中使用的技术，rock4automation项目中已经涵盖？
+> 为什么已经有了[rock4automation](https://github.com/RockFeng0/rock4automation)的自动化测试框架的项目，还要另起一个rtsf项目，并且rtsf中使用的技术，rock4automation项目中已经涵盖？
 
 因为，它存在的痛点很明显：
 
