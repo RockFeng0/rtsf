@@ -1,15 +1,21 @@
-# rtsf(rock4 test service framework)
+# 项目初衷
 
-**[rock4automation项目](https://github.com/RockFeng0/rock4automation)痛点**
-- 集成了 http测试,web UI测试，PC MFC UI测试，PC WPF UI测试，但实际上，QA或者测试人员，可能只需要http相关的api测试，却不得不将整个项目下载安装
-- rock4automation项目,打包发布的程序，会将源码封装了exe或者加密为pyd；
-- rock4automation项目,打包了相关工具，比如appium-server，java.exe 等等，大量冗余的，非项目源码的工具
+> 为什么已经有了**[rock4automation](https://github.com/RockFeng0/rock4automation)痛点**的自动化测试框架的项目，还要另起一个rtsf项目，并且rtsf中使用的技术，rock4automation项目中已经涵盖？
 
-**rtsf项目的目标**
-- 可扩展，用于打造一个基本的测试服务框架,也许以后可以基于RPC，但是，目前，还只是一个可扩展的模块包
-- 精简，拆分业务测试相关的功能、测试框架应有的基础功能、其他工具不再整合，rtsf项目，就是其中的基础功能
-- 专注，rtsf已经完成了，自成一体的执行逻辑，测试开发人员，主要精力仅需要投入到，重写和设计测试用例执行过程的run_test函数
-- 轻量，少造轮子，多复用标准库和优秀开源项目
+因为，它存在的痛点很明显：
+
+- rock4automation项目的初衷，是为了能快速重拾技术，是技术的合集，包含了新旧测试的技术。里边一些模块，是冗余的存在，这让项目本身很臃肿。如整合的一些自动化框架，selenium、appium、autoitv3、Microsoft UI Automation等等，关于性能的测试，整合了locust的一些用法。
+- rock4automation项目,打包发布的程序，会将源码封装了exe或者加密为pyd，也就是说，发布出来的程序，不是一个源码，而是一个客户端程序，这就有违我开源的意图了
+- rock4automation项目,打包了相关工具，比如appium-server，java.exe 等等，大量冗余的非项目源码的工具 
+
+而rtsf(rock4 test service framework)项目的初衷：
+
+- 参考rock4automation和httprunner的项目，我希望能精简一下rtsf，使它**仅仅提供一个测试的关键字驱动和数据驱动的程序框架**。
+- 其次，我希望**rtsf是个可扩展的服务框架**，一些自动化技术的框架，可以依托rtsf，迅速形成一个有效的自动化测试相关的业务框架。如整合selenium形成web应用业务的自动化测试框架；整合requests等技术，形成http(s)接口层业务的自动化测试框架等。
+- 另外，关于持续继承方面，我希望**rtsf是个命令行的工具**，依托它产生的自动化测试框架，可以接入持续集成的系统。
+- 最后，我希望，依托rtsf产生的自动化测试项目，能够轻量，少造轮子，多复用标准库和优秀开源项目，
+
+# 介绍
 
 
 ## rtsf-测试用例模型
