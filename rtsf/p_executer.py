@@ -31,15 +31,16 @@ from rtsf import p_testcase, p_compat,p_exception
 class TestCase(unittest.TestCase):
     """ create a testcase.
     """
-    def __init__(self, test_runner, testcase_dict):
+    def __init__(self, test_runner, testcase_dict, variables):
         super(TestCase, self).__init__()
         self.test_runner = test_runner
         self.testcase_dict = testcase_dict.copy()
+        self.variables = variables
 
     def runTest(self):
         """ run testcase and check result.
         """
-        self.test_runner._run_test(self.testcase_dict)
+        self.test_runner._run_test(self.testcase_dict, self.variables)
 
 
 class TestSuite(unittest.TestSuite):
@@ -74,47 +75,35 @@ class TestSuite(unittest.TestSuite):
     def __init__(self, testset, runner_cls):
         super(TestSuite, self).__init__()
          
-        file_path = testset.get("file_path")
-        project   = testset.get("project")
-        testcases = testset.get("cases", [])
-         
-        project_data = project.pop("data",[])   
-        for data_variables_dict in parse_project_data(project_data, file_path) or [{}]:            
-            project['data_var'] = data_variables_dict
-             
-            self.test_runner = test_runner = runner_cls()  
-            if not isinstance(test_runner._default_devices, (list, tuple)):            
-                raise TypeError("_default_devices not a list or tuple.")
-                      
-            test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
-                                tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices},
-                                projinfo = project.copy()
-                                )
-                         
-            for testcase_dict in testcases:                
-                self._add_test_to_suite(testcase_dict["name"], test_runner, testcase_dict.copy())
-             
-#             for testcase_dict in testcases:
-#                 test_runner.parser.update_binded_variables(test_runner.proj_info["data_var"])                
-#                 try:
-#                     testcase_name = test_runner.parser.eval_content_with_bind_actions(testcase_dict["name"])
-#                 except (AssertionError, p_exception.ParamsError):
-#                     logger.log_warning("failed to eval testcase name: {}".format(testcase_dict["name"]))
-#                     testcase_name = testcase_dict["name"]
-#                                         
-#                 self._add_test_to_suite(testcase_name, test_runner, testcase_dict.copy())
-                
-    def _add_test_to_suite(self, testcase_name, test_runner, testcase_dict):
+        file_path    = testset.get("file_path")
+        project      = testset.get("project")
+        testcases    = testset.get("cases", [])        
+        project_data = project.pop("data",[])
+        
+        test_runner = self.test_runner = runner_cls()
+        if not isinstance(test_runner._default_devices, (list, tuple)):            
+            raise TypeError("_default_devices not a list or tuple.")
+        
+        test_runner.init_runner(parser = p_testcase.TestCaseParser(file_path = file_path), 
+                            tracers = {device:Tracer(device_id = device, dir_name = os.path.dirname(os.path.abspath(file_path))) for device in test_runner._default_devices},
+                            projinfo = project
+                            )
+        
+        for data_variables_dict in parse_project_data(project_data, file_path) or [{}]:
+            for testcase_dict in testcases:                        
+                self._add_test_to_suite(testcase_dict["name"], test_runner, testcase_dict, data_variables_dict)
+                             
+    def _add_test_to_suite(self, testcase_name, test_runner, testcase_dict, variables):
         if p_compat.is_py3:
             TestCase.runTest.__doc__ = testcase_name
         else:
             TestCase.runTest.__func__.__doc__ = testcase_name
-
-        test = TestCase(test_runner, testcase_dict)
-        [self.addTest(test) for _ in range(int(testcase_dict.get("times", 1)))]
-    
+        
+        test = TestCase(test_runner, testcase_dict, variables)
+        [self.addTest(test) for _ in range(int(testcase_dict.get("times", 1)))]        
+        
     @property
-    def tests(self):
+    def tests(self):                
         return self._tests
    
 class TaskSuite(unittest.TestSuite):
@@ -222,13 +211,14 @@ class Runner(object):
     def __init__(self):
         '''
         @note: maybe override variables
-            _default_devices -> list type; to genrate tracer map, format is `{device_id: tracer_obj}` 
+            _default_devices -> list type; to genrate tracer map, format is `{device_id: tracer_obj}`
+                            e.g.
                                  default {"":tracer_obj} use to generate report for local host; 
                                  {"192.168.0.1:5555":tracer_obj1, "192.168.0.2:5555":tracer_obj2} use to generate report for remote host if run with mutilple process                                
             _default_drivers -> list type; to define driver map, format is `(device_id: driver)`
+                            e.g.
                                 default ("", None) use to run case with a driver;
-                                [("192.168.0.1:5555":selenium_driver), ("192.168.0.2:5555":appium_driver), ...] use for multiple process to run case with specified drivers
-                                  
+                                [("192.168.0.1:5555":selenium_driver), ("192.168.0.2:5555":appium_driver), ...] use for multiple process to run case with specified drivers                      
         '''
         self._default_devices = [""]
         self._default_drivers = [("",None)]
@@ -252,18 +242,20 @@ class Runner(object):
         self.tracers = tracers
         self.proj_info = projinfo
         
-    def run_test(self, testcase_dict, driver_map):
+    def run_test(self, testcase_dict, variables, driver_map):
         ''' define how to run a case. override this method
         @param testcase_dice:  yaml case
-        @param driver_map:  device id map to a driver        
+        @param driver_map:  device id map to a driver 
+              
         '''
         fn, _ = driver_map
         reporter = self.tracers[fn]
         
-        parser = self.parser        
-        parser.update_binded_variables(self.proj_info["data_var"])
+        parser = self.parser
+        parser.update_binded_variables(variables)
         
-        reporter.start(self.proj_info["module"], parser.eval_content_with_bind_actions(testcase_dict.get("name",u'rtsf')), testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        case_name = parser.eval_content_with_bind_actions(testcase_dict.get("name",u'rtsf'))
+        reporter.start(self.proj_info["module"], case_name, testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
         reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
         
         reporter.section(u"------------section ok")
@@ -273,16 +265,19 @@ class Runner(object):
         
         return reporter
     
-    def _run_test(self, testcase_dict):
+    def _run_test(self, testcase_dict, variables={}):
         ''' guide the running case
         @param testcase_dice:  yaml case
-        
+        @param variables: dict type; this is defined the variables for the data-driven test
+                            e.g.
+                                default {} use to run case without data-driven
+                                {"username":"test1","password":"123456"}
         '''
         if self._local_driver:
-            self.run_test(testcase_dict, self._default_drivers[0])
+            self.run_test(testcase_dict, variables, self._default_drivers[0])
         else:
             self._drivers = []
-            self._run_grid_multithread(partial(self.run_test, testcase_dict), self._default_drivers)
+            self._run_grid_multithread(partial(self.run_test, testcase_dict, variables), self._default_drivers)
             
     def _run_grid_multiprocess(self, func, iterables):
         ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
