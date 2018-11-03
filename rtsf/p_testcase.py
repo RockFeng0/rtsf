@@ -356,7 +356,7 @@ class TestCaseParser(object):
             variable_value = self.get_bind_variable(variable_name)
                         
             if "${}".format(variable_name) == content:
-                logger.log_info("eval variables result: ${} -> {}".format(variable_name, variable_value))
+                logger.log_debug("eval variables result: ${} -> {}".format(variable_name, variable_value))
                 # content is a variable                
                 content = variable_value
             else:
@@ -365,7 +365,7 @@ class TestCaseParser(object):
                 # content contains one or several variables
                 content = content.replace("${}".format(variable_name),p_compat.str(variable_value), 1)
                 
-                logger.log_info("eval variables result: {} -> {}".format(tmp, content))
+                logger.log_debug("eval variables result: {} -> {}".format(tmp, content))
                 
         return content
 
