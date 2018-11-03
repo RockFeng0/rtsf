@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//rtsf/__about__.py=utf-8
+encoding//rtsf/p_applog.py=utf-8
 encoding//rtsf/p_common.py=utf-8
 encoding//rtsf/p_compat.py=utf-8
 encoding//rtsf/p_executer.py=utf-8
