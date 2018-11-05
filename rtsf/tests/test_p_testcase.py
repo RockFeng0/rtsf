@@ -116,7 +116,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertIn("cases", test_cases)
         self.assertEqual(test_cases["name"], "分层用例-api-suite")
         all_cases_name = [case["name"] for case in test_cases["cases"]]
-        expected = ("baidu_test1","baidu_test2","baidu_test3")
+        expected = ("/baidu_test1","/baidu_test2","/baidu_test3")
         self.assertEqual(set(all_cases_name), set(expected))        
     
     def test_load_files_from_file(self):
@@ -260,10 +260,10 @@ class TestTestCaseParser(unittest.TestCase):
 
 if __name__ == '__main__':
 #     logger.setup_logger("debug")
-#     unittest.main(verbosity=2)
-#     suite = unittest.TestSuite()
-    #suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
-    suite.addTest(TestPublicFuction("test_parse_project_data"))    
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
+    unittest.main(verbosity=2)
+ #     suite = unittest.TestSuite()
+#     #suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
+#     suite.addTest(TestYamlCaseLoader("test_load_file_with_api_and_suite"))    
+#     runner = unittest.TextTestRunner(verbosity=2)
+#     runner.run(suite)
 

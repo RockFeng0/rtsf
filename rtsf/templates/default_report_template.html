@@ -117,7 +117,7 @@
 								</tr>
 							    {% for detail in details %}
 								<tr>
-								    <td class='tr_normal'><a target='_blank' href='{{ detail["linkurl"] }}'>{{ detail.case_name }}</a></td>
+								    <td class='tr_normal'><a target='_blank' href='{{ detail["linkurl"] }}'>{{ detail.raw_case_name }}</a></td>
 								    <td class='{{ detail["c_style"] }}'>{{ detail.status }}</td>
 								    <td class='tr_normal'>{{ detail.resp_tester }}</td>
 								    <td class='tr_normal'>{{ detail.tester }}</td>

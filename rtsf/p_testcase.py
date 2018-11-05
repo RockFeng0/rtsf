@@ -382,6 +382,8 @@ class YamlCaseLoader(object):
             m = YamlCaseLoader(r"D:\auto\buffer\test.yaml")
             for i in m.translate():print(i)
         :return iterator (case_name, execute_function)
+        
+        @note:  this method is useless
         '''
         if not self.check():
             return 
@@ -520,8 +522,7 @@ class YamlCaseLoader(object):
                     if not name:
                         raise p_exception.ModelFormatError("Some cases do not have 'name'.")
                     
-                    test_block["name"] = FileSystemUtils.get_legal_filename(name)
-                    
+                    test_block["name"] = name                    
                     if "api" in test_block:
                         ref_call = test_block["api"]
                         def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
@@ -651,41 +652,20 @@ class YamlCaseLoader(object):
 
     @staticmethod
     def _override_block(def_block, current_block):
-        ''' override def_block with current_block '''       
+        ''' override def_block with current_block
+            @note: def_block is not effect if current_block has value
+        '''       
+        merge_keys = ("pre_command", "post_command", "verify")
         
-        def_pre = def_block.get("pre_command", [])
-        current_pre = current_block.get("pre_command", [])
-        
-        def_post = def_block.get("post_command", [])
-        current_post = current_block.get("post_command", [])
-        
-        def_verify = def_block.get("verify", [])
-        current_verify = current_block.get("verify", [])
-        
-        current_block.update(def_block)        
-        # merge pre_command        
-        if not def_pre:
-            current_block["pre_command"] = current_pre    
-        elif not current_pre:
-            current_block["pre_command"] = def_pre    
-        else:
-            current_block["pre_command"] = current_pre.extend(def_pre)        
-        # merge post_command        
-        if not def_post:
-            current_block["post_command"] = current_post    
-        elif not current_post:
-            current_block["post_command"] = def_post    
-        else:
-            current_block["post_command"] = current_post.extend(def_post)
-        # merge verify        
-        if not def_verify:
-            current_block["verify"] = current_verify    
-        elif not current_verify:
-            current_block["verify"] = def_verify    
-        else:
-            current_block["verify"] = current_verify.extend(def_verify)
+        for key in merge_keys:
+            define = def_block.get(key, [])
+            current = current_block.get(key, [])
             
-        
+            if not current:
+                current_block[key] = define
+            else:
+                current_block[key] = current
+                                
         
 def is_testset(data_structure):
     """ check if data_structure is a testset

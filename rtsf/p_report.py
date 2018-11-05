@@ -39,9 +39,16 @@ class HtmlReporter(object):
         self.summary = []      
                     
     def start_test(self,module_name,case_name, resp_tester, tester):
+        '''
+        @param module_name: test set name or test module name
+        @param case_name: normal text case name, may contain '@#$~%^(+=-)&* ...'
+        @param resp_tester: name of responsible tester
+        @param tester: name of tester who run this case  
+        '''
         self.meta_data = {
             "module_name": module_name,
-            "case_name": case_name,
+            "raw_case_name": case_name,
+            "case_name": FileSystemUtils.get_legal_filename(case_name),
             "status": "pass",
             "resp_tester":resp_tester,
             "tester":tester,
@@ -109,7 +116,7 @@ class HtmlReporter(object):
         return html_results
     
     @staticmethod
-    def render_html(report_file_path, summary):
+    def render_html(report_file_path, summary):        
         html_report_template = os.path.join(os.path.abspath(os.path.dirname(__file__)),"templates","default_report_template.html")
         
         with io.open(html_report_template, "r", encoding='utf-8') as f_r:
@@ -198,8 +205,9 @@ class HtmlReporter(object):
                 start_at:    tester run this case at time 
                 end_at:      tester stop this case at time
         '''
-        start_at = kwargs.get("start_at")
+        start_at = kwargs.get("start_at")        
         case_name = kwargs.get("case_name","TestCase")
+        raw_case_name = kwargs.get("raw_case_name","TestCase")
                 
         exec_date_time = time.localtime(start_at)
         execdate = time.strftime("%Y-%m-%d",exec_date_time) 
@@ -209,6 +217,7 @@ class HtmlReporter(object):
                 'resp_tester': kwargs.get("resp_tester","administrator"),
                 'tester': kwargs.get("tester","administrator"),
                 'case_name': case_name,
+                'raw_case_name': raw_case_name,
                 'status': kwargs.get("status","Pass"),
                 'exec_date': execdate,
                 'exec_time': exectime,
@@ -221,7 +230,7 @@ class HtmlReporter(object):
                 continue
             
             for case in module["TestCases"]:
-                if case_name == case["case_name"]:
+                if raw_case_name == case["raw_case_name"]:
                     case.update(_case_report)
                     return list_all
             

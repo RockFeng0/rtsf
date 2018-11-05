@@ -105,13 +105,13 @@ class TestHtmlReport(unittest.TestCase):
     def test_generate_html_report(self):        
         ####  same project name, different project module
         reporter = HtmlReporter()
-        reporter.start_test("xxx功能模块1", "ATP-1【登录测试】", "张三", "李四")
+        reporter.start_test("xxx功能模块1", "ATP-1【登录测试】-/index/login/1", "张三", "李四")
         reporter.step_info("section", "------------test_1")
         reporter.step_info("step","step1")
         reporter.step_info("normal","normal1")
         reporter.stop_test()
         
-        reporter.start_test("xxx功能模块2", "ATP-2【登录测试】", "张三", "李四")
+        reporter.start_test("xxx功能模块2", "ATP-2【登录测试】-/index/login/2", "张三", "李四")
         reporter.step_info("section", "------------test_1")
         reporter.step_info("step","step1")
         reporter.step_info("normal","normal1")
