@@ -654,13 +654,12 @@ class YamlCaseLoader(object):
     def _override_block(def_block, current_block):
         ''' override def_block with current_block
             @note: def_block is not effect if current_block has value
-        '''       
-        merge_keys = ("pre_command", "post_command", "verify")
+        '''
         
-        for key in merge_keys:
-            define = def_block.get(key, [])
-            current = current_block.get(key, [])
-            
+        merge_keys = ("pre_command", "post_command", "verify")        
+        merge_keys_value = [(key, def_block.get(key, []), current_block.get(key, [])) for key in merge_keys]
+        current_block.update(def_block)
+        for key, define, current in merge_keys_value:
             if not current:
                 current_block[key] = define
             else:
