@@ -17,6 +17,72 @@
 
 # 介绍
 
+## 安装
+
+```
+pip install rtsf
+```
+
+## rtsf-入门
+
+rtsf提供测试执行、报告、日志的基本功能
+
+### 基本的使用
+自定义case运行过程，就是重写 Runner.run_test的过程，是使用rtsf的主要工作
+
+1. 编写一个测试用例文件,如test.yaml 
+
+```
+# test.yaml
+
+- project:
+    name: demo project
+    module: test baidu
+    
+- case:    
+    name: www.baidu.com
+    
+```
+
+2. 编写一个数据驱动的，测试用例文件test2.yaml, 同目录下，创建user_name_password.csv和devices.csv
+
+```
+# test.yaml
+
+- project:
+    name: demo project
+    module: test baidu
+    data:
+        - csv: devices.csv
+          by: Random
+        - csv: username_password.csv    
+    
+- case:    
+    name: www.baidu.com
+
+
+# username_password.csv
+username,password
+15312341230,1234567890
+15312341231,1234567891
+
+
+# devices.csv
+devices
+android-0
+android-1
+android-2
+
+```
+
+3. 执行该测试用例文件
+
+```
+from rtsf.p_executer import TestRunner
+runner = TestRunner().run('test.yaml')
+runner.gen_html_report()
+```
+
 
 ## rtsf-测试用例模型
 
