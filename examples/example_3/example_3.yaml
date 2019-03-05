@@ -1,0 +1,24 @@
+- project:
+    name: demo project
+    module: test baidu
+    
+- case:    
+    name: demo test
+    responsible: your name
+    testser: other name
+    demotest: ${add(1, 2)}
+    demoverify: ${_is(3)}
+    
+- case:    
+    name: demo test2
+    responsible: your name
+    testser: other name
+    demotest: ${mod(1, 2)}
+    demoverify: ${_is(3)} 
+
+- case:    
+    name: demo test3
+    responsible: your name
+    testser: other name
+    demotest: ${mod(1, 0)}
+    demoverify: ${_is(3)} 

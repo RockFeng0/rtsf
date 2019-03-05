@@ -1,0 +1,20 @@
+- project:
+    name: demo project
+    module: a demo test
+    
+- case:    
+    name: case 0
+    suite: suite_test()
+    
+- case:
+    name: case 1
+    api: add_api(1, 2, 100)
+
+- case:    
+    name: case 2
+    api: mod_api(1, 2, 100)
+
+- case:    
+    name: case 3
+    demotest: ${add(1, 2)}
+    demoverify: ${_is(3)} 

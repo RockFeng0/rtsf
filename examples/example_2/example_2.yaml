@@ -1,0 +1,10 @@
+- project:
+    name: demo project
+    module: test baidu
+    data:
+        - csv: devices.csv
+          by: Random
+        - csv: username_password.csv    
+    
+- case:    
+    name: www.baidu.com-$username-$password-$devices

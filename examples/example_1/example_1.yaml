@@ -1,0 +1,8 @@
+# example_1.yaml
+
+- project:
+    name: demo project
+    module: test baidu
+    
+- case:    
+    name: www.baidu.com

@@ -129,10 +129,10 @@ runner.gen_html_report()
 
 ### 简单实例
 
- 编写一个测试用例文件,如test.yaml 
+ 编写一个测试用例文件,如 example_1.yaml 
 
 ```
-# test.yaml
+# example_1.yaml
 
 - project:
     name: demo project
@@ -143,16 +143,17 @@ runner.gen_html_report()
     
 ```
 
-执行后，生成报告的结果:
-
+example_1执行后的报告:
 ![实例-1.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/实例-1.png)
+
+**代码，参见项目目录examples/example_1**
 
 ### 数据驱动-实例
 
-如下，创建三个文件，test.yaml, username_password.csv, devices.csv
+如下，创建三个文件，example_2.yaml, username_password.csv, devices.csv
 
 ```
-# test.yaml
+# example_2.yaml
 
 - project:
     name: demo project
@@ -187,10 +188,10 @@ data关键字，以列表形式存在，每个列表项是一个字典，由两�
 - by是指读取csv格式的顺序， Random or Sequential。默认是Sequential，顺序读取。 该参数，可选填
 - 笛卡儿积算法，会对多个data参数进行排列，rtsf会对排列的最终结果遍历执行当前测试集合
 
-
-执行后,生成报告的结果, 跑了6条用例，是username_password.csv和devices.csv里边参数的笛卡儿积，username_password默认是顺序，devices是随机:
-
+example_2执行后的报告，如下， 跑了6条用例，是username_password.csv和devices.csv里边参数的笛卡儿积，username_password默认是顺序，devices是随机。
 ![实例-2.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/实例-2.png)
+
+**代码，参见项目目录examples/example_2**
 
 ### 重写Runner-实例
 
@@ -200,7 +201,7 @@ data关键字，以列表形式存在，每个列表项是一个字典，由两�
 首先， 我们设计我们的yaml用例， 比如，在上面的例子中，加入了几个关键字， responsible, tester, demotest, demoverify
 
 ```
-# test.yaml
+# example_3.yaml
 
 - project:
     name: demo project
@@ -211,21 +212,21 @@ data关键字，以列表形式存在，每个列表项是一个字典，由两�
     responsible: your name
     testser: other name
     demotest: ${add(1, 2)}
-    demoverify: ${is(3)}
+    demoverify: ${_is(3)}
     
 - case:    
     name: demo test2
     responsible: your name
     testser: other name
     demotest: ${mod(1, 2)}
-    demoverify: ${is(3)} 
+    demoverify: ${_is(3)} 
 
 - case:    
     name: demo test3
     responsible: your name
     testser: other name
     demotest: ${mod(1, 0)}
-    demoverify: ${is(3)} 
+    demoverify: ${_is(3)} 
     
 ```
 
@@ -236,9 +237,10 @@ data关键字，以列表形式存在，每个列表项是一个字典，由两�
 > 注意: 重写的时候，第一个参数，是单个case，不是所有case，**只需要写一个case的执行逻辑**
 
 ```
-# test.py
+# DemoRunner.py
 
 # encoding:utf-8
+
 from rtsf.p_executer import TestRunner, Runner
 
 def test_add(x, y):
@@ -281,7 +283,7 @@ class DemoRunner(Runner):
         parser = self.parser
         
         # 绑定测试用例关键字
-        yaml_keys = {"add": test_add, "mod": test_mod, 'is': verify_is}
+        yaml_keys = {"add": test_add, "mod": test_mod, '_is': verify_is}
         parser.bind_functions(yaml_keys)        
         
         # 更新传入的变量
@@ -297,9 +299,9 @@ class DemoRunner(Runner):
             # fn_logger 可以记录报告，使用:  start, section, step, normal, ok, fail, error, stop
             # start 用于 开始记录报告；  stop 用于结束报告记录
             fn_logger.start(self.proj_info["module"],  # yaml case中 module
-                            case_name,  # yaml case中 用例名称
-                            testcase_dict.get("responsible",u"administrator"), # yaml case定义的responsible 
-                            testcase_dict.get("tester",u"administrator"), # yaml case定义的tester
+                            case_name,  # yaml case中 用例名臣
+                            testcase_dict.get("responsible",u"administrator"), # yaml case中responsible定义的责任人名称 
+                            testcase_dict.get("tester",u"administrator"), # yaml case中tester定义的测试人名称
                             )
             
             # fn_logger 可以使用了logging, 记录日志，使用:  log_debug, log_info, log_warning, log_error, log_critical
@@ -327,19 +329,28 @@ class DemoRunner(Runner):
             fn_logger.error(e)
                              
         fn_logger.stop()
+```
+- DemoRunner中，三个内置函数 test_add  test_mod  verify_is 映射到 yaml函数:  add,  mod, _is
+- DemoRunner中， 使用Tracer的实例fn_logger，对测试执行过程进行日志和报告的记录，最后使用 fn_logger.stop()结束测试
 
-runner = TestRunner(runner = DemoRunner).run(r'C:\xxx\xxx\test.yaml')
+最后，我们设置runner参数为 DemoRunner, 执行我们自定义的用例逻辑
+
+```
+# example_3.py
+
+# encoding:utf-8
+
+from rtsf.p_executer import TestRunner, Runner
+from DemoRunner import DemoRunner
+
+runner = TestRunner(runner = DemoRunner).run(r'example_3.yaml')
 runner.gen_html_report()
 ```
 
-> 定义了三个函数 test_add  test_mod  verify_is 映射到 yaml用例中的3个关键字:  add,  mod, is
-
-> 注意，执行的时候，我们用，自定义额的 DemoRunner； 而且 要使用Tracer的实例fn_logger，对测试执行过程进行日志和报告的记录，最后用例执行结束，使用 fn_logger.stop()结束测试
-
-执行test.py后,生成报告的结果, 跑了3条用例，1条通过，1条失败，1条报错
-
+example_3执行后的报告，如下，跑了3条用例，1条通过，1条失败，1条报错
 ![实例-3.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/实例-3.png)
 
+**代码，参见项目目录examples/example_3**
 
 ### 测试用例分层(测试组件化)-实例
 
@@ -355,12 +366,12 @@ runner.gen_html_report()
 - api:    
     def: add_api($arg1, $arg2, $exp)
     demotest: ${add($arg1, $arg2)}
-    demoverify: ${is($exp)}
+    demoverify: ${_is($exp)}
        
 - api:
     def: mod_api($arg1, $arg2, $exp)
     demotest: ${mod($arg1, $arg2)}
-    demoverify: ${is($exp)} 
+    demoverify: ${_is($exp)} 
 
 # ./dependencies/suite/test_suite.yaml
 
@@ -378,9 +389,9 @@ runner.gen_html_report()
 - case:    
     name: suite 3
     demotest: ${add(1, 2)}
-    demoverify: ${is(3)} 
+    demoverify: ${_is(3)} 
     
-# ./test.yaml
+# ./example_4.yaml
 
 - project:
     name: demo project
@@ -401,13 +412,51 @@ runner.gen_html_report()
 - case:    
     name: case 3
     demotest: ${add(1, 2)}
-    demoverify: ${is(3)} 
+    demoverify: ${_is(3)} 
 
 ```
 
-使用test.py，执行这个test.yaml, 生成报告的结果, 跑了6条用例，suite中3条通过，case的3条中，2条失败，1条成功
-
+example_4执行后的报告，如下，跑了6条用例，suite中3条通过，case的3条中，2条失败，1条成功
 ![实例-4.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/实例-4.png)
+
+**代码，参见项目目录examples/example_4**
+
+### 自定义内置函数
+在上述DemoRunner重写 Runner.run_test的过程中，我们定义了三个yaml函数: add, mod, _is, 映射到内置函数， test_add  test_mod  verify_is
+
+rtsf 提供了另一种更简单的方法
+1. 定义preference.py，将yaml函数写入 
+
+```
+# preference.py
+
+#encoding:utf-8
+
+def add(x, y):
+    global result
+    result = x+y
+    
+def mod(x, y):
+    global result
+    result = x%y
+
+def _is(x):
+    return result == x 
+```
+2. 注释，DemoRunner中，映射相关代码
+
+```
+...
+
+# 绑定测试用例关键字
+# yaml_keys = {"add": test_add, "mod": test_mod, 'is': verify_is}
+# parser.bind_functions(yaml_keys)
+...
+
+```
+执行结果，同 example_4
+
+**代码，参见项目目录examples/example_5**
 
 ## rtsf-高阶用法
 

@@ -1,0 +1,15 @@
+- project:
+    def: suite_test()
+    
+- case:
+    name: suite 1
+    api: add_api(1, 2, 3)
+
+- case:    
+    name: suite 2
+    api: mod_api(2, 2, 0)
+    
+- case:    
+    name: suite 3
+    demotest: ${add(1, 2)}
+    demoverify: ${_is(3)} 

@@ -1,0 +1,10 @@
+    
+- api:    
+    def: add_api($arg1, $arg2, $exp)
+    demotest: ${add($arg1, $arg2)}
+    demoverify: ${_is($exp)}
+       
+- api:
+    def: mod_api($arg1, $arg2, $exp)
+    demotest: ${mod($arg1, $arg2)}
+    demoverify: ${_is($exp)} 
