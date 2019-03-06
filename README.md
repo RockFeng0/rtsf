@@ -123,7 +123,7 @@ runner.gen_html_report()
 ```
 
 - TestRunner(runner = Runner),runner参数用于指定重写了Runner子类,该子类重写了Runner.run_test方法。 默认值为Runner
-- TestRunner.run, 该方法，用于运行指定yaml的case文件，或者运行指定文件夹路径中的yaml和json,如c:\case目录下*.yaml和*.json
+- TestRunner.run, 该方法，用于**运行指定yaml的case文件**，或者**运行指定文件夹路径中的yaml和json**,如c:\case目录下*.yaml和*.json
 - TestRunner。gen_html_report,该方法，用于生成测试报告，报告路径是yaml文件所在路径
 
 
