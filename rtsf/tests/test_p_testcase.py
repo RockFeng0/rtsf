@@ -87,12 +87,12 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
     
     def test_load_dependencies_from_file(self):        
-        YamlCaseLoader.load_dependencies(self.case)   
+        YamlCaseLoader.load_dependencies(self.case)
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
         self.assertEqual("test_suite" in YamlCaseLoader.overall_def_dict["suite"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["suite"]["test_suite"], True)
-    
+                
     def test_load_dependencies_from_dir(self):
         YamlCaseLoader.load_dependencies(r'data\testcases')
         
@@ -114,7 +114,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertIn("file_path", test_cases)
         self.assertIn("project", test_cases)
         self.assertIn("cases", test_cases)
-        self.assertEqual(test_cases["name"], "分层用例-api-suite")
+        self.assertEqual(test_cases["name"], u"分层用例-api-suite")
         all_cases_name = [case["name"] for case in test_cases["cases"]]
         expected = ("/baidu_test1","/baidu_test2","/baidu_test3")
         self.assertEqual(set(all_cases_name), set(expected))        
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     unittest.main(verbosity=2)
  #     suite = unittest.TestSuite()
 #     #suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
-#     suite.addTest(TestYamlCaseLoader("test_load_file_with_api_and_suite"))    
+#     suite.addTest(TestYamlCaseLoader("test_load_dependencies_from_file"))    
 #     runner = unittest.TextTestRunner(verbosity=2)
 #     runner.run(suite)
 

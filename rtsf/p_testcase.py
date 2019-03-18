@@ -160,9 +160,9 @@ def substitute_variables_with_mapping(content, mapping):
         return substituted_data
 
     # content is in string format here
-    logger.log_debug("Will substitute: {} with {}".format(content, mapping))
+    logger.log_debug(u"Will substitute: {} with {}".format(content, mapping))
     for var, value in mapping.items():        
-        logger.log_debug("\t: {} - {}".format(content, {var:value}))
+        logger.log_debug(u"\t: {} - {}".format(content, {var:value}))
         if content == var:
             # content is a variable
             content = value
@@ -312,7 +312,7 @@ class TestCaseParser(object):
 
             # replace variables with binding value
             content = self._eval_content_variables(content)
-        
+            
         return content
     
     def _eval_content_functions(self, content):
@@ -330,9 +330,10 @@ class TestCaseParser(object):
             eval_value = func(*args, **kwargs)
 
             func_content = "${" + func_content + "}"
+                            
             if func_content == content:
                 
-                logger.log_debug("eval functions result: {} -> {}".format(func_content, eval_value))
+                logger.log_debug(u"eval functions result: {} -> {}".format(func_content, eval_value))
                 
                 # content is a variable
                 content = eval_value
@@ -345,7 +346,7 @@ class TestCaseParser(object):
                     p_compat.str(eval_value), 1
                 )
                 
-                logger.log_debug("eval functions result: {} -> {}".format(tmp, content))
+                logger.log_debug(u"eval functions result: {} -> {}".format(tmp, content))
         
         return content
     
@@ -356,7 +357,9 @@ class TestCaseParser(object):
             variable_value = self.get_bind_variable(variable_name)
                         
             if "${}".format(variable_name) == content:
-                logger.log_debug("eval variables result: ${} -> {}".format(variable_name, variable_value))
+                
+                logger.log_debug(u"eval variables result: ${} -> {}".format(variable_name, variable_value))
+                
                 # content is a variable                
                 content = variable_value
             else:
@@ -365,7 +368,7 @@ class TestCaseParser(object):
                 # content contains one or several variables
                 content = content.replace("${}".format(variable_name),p_compat.str(variable_value), 1)
                 
-                logger.log_debug("eval variables result: {} -> {}".format(tmp, content))
+                logger.log_debug(u"eval variables result: {} -> {}".format(tmp, content))
                 
         return content
 
@@ -440,9 +443,10 @@ class YamlCaseLoader(object):
         for test_file in FileUtils.load_folder_files(api_def_folder):
             YamlCaseLoader.load_api_file(test_file)
 
-        # load suite definitions        
+        # load suite definitions
         for suite_file in FileUtils.load_folder_files(suite_def_folder):
             suite = YamlCaseLoader.load_file(suite_file)
+            
             if "def" not in suite["project"]:
                 raise p_exception.ParamsError("def missed in suite file: {}!".format(suite_file))
 
@@ -497,7 +501,7 @@ class YamlCaseLoader(object):
         
         try:
             test_cases = FileUtils.load_file(yaml_file)
-            logger.log_debug("Yaml raw dict: {}".format(test_cases))
+            logger.log_debug(u"Yaml raw dict: {}".format(test_cases))
             
             for item in test_cases:
                 if not isinstance(item, dict) or len(item) != 1:
@@ -527,13 +531,13 @@ class YamlCaseLoader(object):
                         ref_call = test_block["api"]
                         def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
                         YamlCaseLoader._override_block(def_block, test_block)
-                        logger.log_debug("merged api block: {}".format(test_block))
+                        logger.log_debug(u"merged api block: {}".format(test_block))
                         testset["cases"].append(test_block)
                         
                     elif "suite" in test_block:
                         ref_call = test_block["suite"]
                         block = YamlCaseLoader._get_block_by_name(ref_call, "suite")
-                        logger.log_debug("extend suite block: {}".format(block["cases"]))
+                        logger.log_debug(u"extend suite block: {}".format(block["cases"]))
                         testset["cases"].extend(block["cases"])
                         
                     else:
@@ -658,13 +662,15 @@ class YamlCaseLoader(object):
         
         merge_keys = ("pre_command", "post_command", "verify")        
         merge_keys_value = [(key, def_block.get(key, []), current_block.get(key, [])) for key in merge_keys]
+        merge_name = current_block.get("name")
+        
         current_block.update(def_block)
         for key, define, current in merge_keys_value:
             if not current:
                 current_block[key] = define
             else:
                 current_block[key] = current
-                                
+        current_block['name'] = merge_name                                
         
 def is_testset(data_structure):
     """ check if data_structure is a testset
