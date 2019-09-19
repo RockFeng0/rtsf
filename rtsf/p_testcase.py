@@ -627,9 +627,11 @@ class YamlCaseLoader(object):
                 continue
 
             args_mapping[item] = call_args[index]
+            logger.log_info(u"{0} define： {1}={2}".format(ref_type.capitalize(), item,call_args[index]))
 
         if args_mapping:
             block = substitute_variables_with_mapping(block, args_mapping)
+            logger.log_info(u"Substitute variables with mapping finished.")
 
         return block
 
