@@ -544,7 +544,7 @@ class YamlCaseLoader(object):
                         testset["cases"].append(test_block)
     
                 else:
-                    logger.log_warning("unexpected block key: {}. block key should only be 'project' or 'case'.".format(key))
+                    logger.log_warning("Unexpected block key: '{0}' in '{1}', should only be ['project' or 'case']".format(key, yaml_file))
             
         except:
             logger.log_error(CommonUtils.get_exception_error())
