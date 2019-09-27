@@ -32,8 +32,10 @@ rtsf提供测试执行、报告、日志的基本功能
 - rtsf分三种用例: case、 api、 suite，所以rtsf**支持测试用例分层，允许测试用例的组件化**, 其中api和suite,比case多一个关键字: def
 - 测试用例编写过程中，使用api关键字封装当前单个case，允许其他case进行调用,类似调用单个api一样
 - 测试用例编写过程中，使用suite关键字，封装当前多个cases，允许其他case进行调用， 类似调用组件化模块一样
-- api用例的原理: **当前case与api重复定义键值对时，取当前case中键值对值** 
-- suite用例的原理: **当前case与suite重复定义键值对，取suite中键值对值**
+- def定义的api和suite,传递参数的替换过程:  当前用例调用api或suite时，**会先将传递的参数值，替换被调用的api或suite中相应的参数**
+- api用例的调用过程: 当前用例调用api的时候，如果**当前case与api重复定义键值对时，取当前case中键值对值** 
+- suite用例的调用过程: 当前用例调用suite的时候，如果**当前case与suite重复定义键值对，取suite中键值对值**
+
 
 > 注意: 其内在逻辑，其实是，先加载api和suite,以dict形式存储在内置变量中，然后，加载测试集的用例，如果测试用例使用了api则合并，如果测试用例使用了suite则扩展。
 
