@@ -15,6 +15,24 @@
 - 另外，关于持续继承方面，我希望**rtsf是个命令行的工具**，依托它产生的自动化测试框架，可以接入持续集成的系统。
 - 最后，我希望，依托rtsf产生的自动化测试项目，能够轻量，少造轮子，多复用标准库和优秀开源项目，
 
+
+# 架构
+
+![rtsf架构.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/rtsf架构.png)
+
+
+## 构建rtsf系列框架
+
+我这里已经写了几个项目,供大家参考和使用:
+
+- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
+- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
+- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
+- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
+
+> 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型
+
+
 # 介绍
 
 ## 安装
@@ -511,14 +529,5 @@ def _is(x):
 
 
 
-### 构建rtsf系列框架
 
-我这里已经写了几个项目,供大家参考和使用:
-
-- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
-- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
-- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
-- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
-
-> 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型
 
