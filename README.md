@@ -15,6 +15,24 @@
 - 另外，关于持续继承方面，我希望**rtsf是个命令行的工具**，依托它产生的自动化测试框架，可以接入持续集成的系统。
 - 最后，我希望，依托rtsf产生的自动化测试项目，能够轻量，少造轮子，多复用标准库和优秀开源项目，
 
+
+# 架构
+
+![rtsf架构.png](https://raw.githubusercontent.com/RockFeng0/img-folder/master/rtsf/rtsf架构.png)
+
+
+## 构建rtsf系列框架
+
+我这里已经写了几个项目,供大家参考和使用:
+
+- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
+- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
+- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
+- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
+
+> 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型
+
+
 # 介绍
 
 ## 安装
@@ -32,8 +50,10 @@ rtsf提供测试执行、报告、日志的基本功能
 - rtsf分三种用例: case、 api、 suite，所以rtsf**支持测试用例分层，允许测试用例的组件化**, 其中api和suite,比case多一个关键字: def
 - 测试用例编写过程中，使用api关键字封装当前单个case，允许其他case进行调用,类似调用单个api一样
 - 测试用例编写过程中，使用suite关键字，封装当前多个cases，允许其他case进行调用， 类似调用组件化模块一样
-- api用例的原理: **当前case与api重复定义键值对时，取当前case中键值对值** 
-- suite用例的原理: **当前case与suite重复定义键值对，取suite中键值对值**
+- def定义的api和suite,传递参数的替换过程:  当前用例调用api或suite时，**会先将传递的参数值，替换被调用的api或suite中相应的参数**
+- api用例的调用过程: 当前用例调用api的时候，如果**当前case与api重复定义键值对时，取当前case中键值对值** 
+- suite用例的调用过程: 当前用例调用suite的时候，如果**当前case与suite重复定义键值对，取suite中键值对值**
+
 
 > 注意: 其内在逻辑，其实是，先加载api和suite,以dict形式存储在内置变量中，然后，加载测试集的用例，如果测试用例使用了api则合并，如果测试用例使用了suite则扩展。
 
@@ -509,14 +529,5 @@ def _is(x):
 
 
 
-### 构建rtsf系列框架
 
-我这里已经写了几个项目,供大家参考和使用:
-
-- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
-- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
-- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
-- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
-
-> 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型
 
