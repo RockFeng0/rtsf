@@ -23,12 +23,20 @@
 
 ## 构建rtsf系列框架
 
-我这里已经写了几个项目,供大家参考和使用:
+我这里已经完成了几个rtsf+的项目,供大家参考和使用:
 
-- [http/https接口自动化测试](https://github.com/RockFeng0/rtsf-http)
-- [web ui浏览器应用自动化测试](https://github.com/RockFeng0/rtsf-web)
-- [android ui移动app自动化测试](https://github.com/RockFeng0/rtsf-app)
-- [windows ui桌面客户端(WPF技术及MFC技术)自动化测试](https://github.com/RockFeng0/rtsf-win)
+- 接口测试[rtsf-http](https://github.com/RockFeng0/rtsf-http)
+- 浏览器测试[rtsf-web](https://github.com/RockFeng0/rtsf-web)
+- android移动端[rtsf-app](https://github.com/RockFeng0/rtsf-app)
+- windows桌面客户端[rtsf-win](https://github.com/RockFeng0/rtsf-win)
+
+其他可接入的方案:
+- 计算机视觉opencv
+- 图形文字识别tesseract
+- 基于像素点对比的图像ImageDiff
+- 基于unity3d技术游戏控件识别pocoui
+
+等等
 
 > 测试用例模型，计划扩展为, yaml, xml, excel三种，目前已扩展的只有yaml测试用例模型
 
