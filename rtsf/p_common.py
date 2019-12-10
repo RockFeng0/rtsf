@@ -240,7 +240,15 @@ class FileUtils(object):
             yaml_content = yaml.load(stream)
             FileUtils._check_format(yaml_file, yaml_content)
             return yaml_content
-
+    
+    @staticmethod
+    def _dump_yaml_file(data, yaml_file):
+        """ dump data to yaml file
+        """
+        # FileUtils._check_format(yaml_file, data)
+        with io.open(yaml_file, 'w', encoding='utf-8') as stream:
+            yaml.dump(data, stream)
+        
     @staticmethod
     def _load_json_file(json_file):
         """ load json file and check file content format
