@@ -38,7 +38,29 @@
                     fail = document.getElementsByClassName("tr_fail")
                     for (i=0;i<fail.length;i++) {fail[i].parentNode.style.display = 'table-row'}
                 }            
-            }
+            };
+            function getUrlParamValue(name) {
+                if (name == null || name == 'undefined') {return null; }
+                var searchStr = decodeURI(location.search);
+                
+                var infoIndex = searchStr.indexOf(name + "=");
+                if (infoIndex == -1) { return null; }
+                
+                var searchInfo = searchStr.substring(infoIndex + name.length + 1);                
+                var tagIndex = searchInfo.indexOf("&");
+                if (tagIndex != -1) { searchInfo = searchInfo.substring(0, tagIndex); }
+                return searchInfo;
+            };
+            function changeHref(e) {
+                var searchStr = decodeURI(e.href)
+                var infoIndex = searchStr.indexOf("?task_id=")
+                if (infoIndex == -1) { 
+                    var new_href = e.href + "?task_id=" + getUrlParamValue("task_id")                    
+                } else {
+                    var new_href = e.href.replace(/?task_id=.*/, "?task_id=" + getUrlParamValue("task_id"))
+                }
+                e.setAttribute('href', new_href)
+            };
             </SCRIPT>
             <META content='MSHTML 6.00.2800.1106'>
         </HEAD>
@@ -117,7 +139,7 @@
 								</tr>
 							    {% for detail in details %}
 								<tr>
-								    <td class='tr_normal'><a target='_blank' href='{{ detail["linkurl"] }}'>{{ detail.raw_case_name }}</a></td>
+								    <td class='tr_normal'><a target='_blank' href='{{ detail["linkurl"] }}' onclick="changeHref(this)">{{ detail.raw_case_name }}</a></td>
 								    <td class='{{ detail["c_style"] }}'>{{ detail.status }}</td>
 								    <td class='tr_normal'>{{ detail.resp_tester }}</td>
 								    <td class='tr_normal'>{{ detail.tester }}</td>
