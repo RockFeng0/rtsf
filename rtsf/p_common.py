@@ -1,26 +1,5 @@
+#! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: pyrunner.common
-
-Rough version history:
-v1.0    Original version to use
-v2.0    Classify some useful functions 
-v2.1    define this module for common functions
-v3.0    delete the class of WebBasic 
-        use this module instead of the class named WebBasic
-v4.0    classify with  @staticmethod
-
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:    lkf20031988@163.com
-    RCS:    rtsf.p_common,v 4.0 2018年7月14日
-    FROM:   2015年4月14日
-********************************************************************
-            
-======================================================================
-
-Frequently used package and functions.
-'''
 
 
 import locale
@@ -66,19 +45,19 @@ encoding = encoding.lower()
 
 
 # def set_sys_encode(code):
-#     if p_compat.is_py2:    
+#     if p_compat.is_py2:
 #         import sys;reload(sys)
 #         getattr(sys, "setdefaultencoding")(code)
 #     else:
 #         import importlib,sys
 #         importlib.reload(sys)
-        
-def init_project_env(subject='Automation', proj_path = None, sysencoding = "utf-8", debug = False):
-    ''' Set the environment for pyrunner '''    
-        
+
+def init_project_env(subject='Automation', proj_path=None, sysencoding="utf-8", debug=False):
+    """ Set the environment for pyrunner """
+
 #     if sysencoding:
 #         set_sys_encode(sysencoding)
-    
+
     if not proj_path:
         try:
             executable_file_path = os.path.dirname(os.path.abspath(inspect.stack()[-1][1]))
@@ -86,53 +65,56 @@ def init_project_env(subject='Automation', proj_path = None, sysencoding = "utf-
             executable_file_path = os.path.dirname(sys.path[0])
         finally:
             proj_path = executable_file_path
-    
+
     p = os.path.join(proj_path,subject)
-    
+
     proj_conf = {
-        "sys_coding" : sysencoding,
-        "debug" : debug,
-        "module_name" : os.path.splitext(os.path.basename(subject))[0],
-        "cfg_file" : os.path.join(p,"config.ini"),
-        "path" : {"root" : p,
-                  "case" : os.path.join(p,"testcase"),
-                  "data" : os.path.join(p,"data"),
-                  "buffer" : os.path.join(p,"buffer"),
-                  "resource" : os.path.join(p,"resource"),
-                  "tools" : os.path.join(p,"tools"),
-                  "rst" : os.path.join(p,"result"),
-                  "rst_log" : os.path.join(p,"result","testcase"),
-                  "rst_shot" : os.path.join(p,"result","screenshots"),
+        "sys_coding": sysencoding,
+        "debug": debug,
+        "module_name": os.path.splitext(os.path.basename(subject))[0],
+        "cfg_file": os.path.join(p,"config.ini"),
+        "path": {"root": p,
+                  "case": os.path.join(p,"testcase"),
+                  "data": os.path.join(p,"data"),
+                  "buffer": os.path.join(p,"buffer"),
+                  "resource": os.path.join(p,"resource"),
+                  "tools": os.path.join(p,"tools"),
+                  "rst": os.path.join(p,"result"),
+                  "rst_log": os.path.join(p,"result","testcase"),
+                  "rst_shot": os.path.join(p,"result","screenshots"),
             },
         }
-     
-    [FileSystemUtils.mkdirs(v) for v in proj_conf["path"].values()]    
+
+    [FileSystemUtils.mkdirs(v) for v in proj_conf["path"].values()]
     sys.path.append(p) if os.path.isdir(p) else ""
     return proj_conf
 
-###  Common functions
 
 class IntelligentWaitUtils(object):
     
     @staticmethod
     def until_cmd(listcmd, end_expects=None, save2logfile=None, coding = encoding):
-        ''' 执行系统命令,并等待执行完
+        """执行系统命令,并等待执行完
             @param listcmd: 执行的命令，列表格式
             @param end_expects: 命令执行结束，在输出的最后一行，正则搜素期望值，并设置 结果标志
             @param save2logfile:  设置执行过程，保存的日志
-            @param coding: 设置输出编码        
-        '''
-        
-        
+            @param coding: 设置输出编码
+        Sample usage:
+            cmd = ["ping","127.0.0.1","-n","1"]
+            until_cmd(cmd)
+            until_cmd(cmd, save2logfile= r"d:\auto\buffer\t.tmp")
+            until_cmd(cmd, end_expects=u"平均 = 0ms", save2logfile= r"d:\auto\buffer\t.tmp")
+        """
         if end_expects and not isinstance(end_expects, p_compat.str):
             raise Exception("invalide unicode string: '%s'" %end_expects)
         
-        lines = []    
-        subp = subprocess.Popen(listcmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        lines = []
+        result = False
+        subp = subprocess.Popen(listcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         while subp.poll()==None:
             next_line = subp.stdout.readline().decode(coding)
             if next_line:
-#                 print(next_line)
+                # print(next_line)
                 lines.append(next_line)
                 if end_expects and re.search(end_expects, next_line):
                     result = True
@@ -142,7 +124,7 @@ class IntelligentWaitUtils(object):
         
         if subp.returncode:
             result = False
-            lines.append("sub command error code: %s" %subp.returncode)
+            lines.append("sub command error code: %s" % subp.returncode)
         
         if save2logfile:
             with open(save2logfile, 'a') as f:
@@ -151,7 +133,7 @@ class IntelligentWaitUtils(object):
         return result
     
     @staticmethod
-    def until(method, timeout = 30, message=''):
+    def until(method, timeout=30, message=''):
         """Calls the method until the return value is not False."""
         end_time = time.time() + timeout
         while True:
@@ -167,7 +149,7 @@ class IntelligentWaitUtils(object):
         raise Exception(message)
     
     @staticmethod
-    def until_not(method, timeout = 30, message=''):
+    def until_not(method, timeout=30, message=''):
         """Calls the method until the return value is False."""
         end_time = time.time() + timeout
         while True:
@@ -183,7 +165,7 @@ class IntelligentWaitUtils(object):
         raise Exception(message)
     
     @staticmethod
-    def wait_for_connection(ip="localhost",port=4444, timeout=30):
+    def wait_for_connection(ip="localhost", port=4444, timeout=30):
         sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         end_time = time.time() + timeout
         while True:
@@ -198,23 +180,25 @@ class IntelligentWaitUtils(object):
             if time.time() > end_time:
                 break
         return False
-        
+
+
 class DateTimeUtils(object):
     
     @staticmethod
     def get_stamp_date():
-        ''' Return the current date '''
+        """ Return the current date """
         return time.strftime("%Y-%m-%d")
     
     @staticmethod
     def get_stamp_datetime():
-        ''' Return the current date time '''
+        """ Return the current date time """
         return time.strftime("%Y-%m-%d %H:%M:%S")
     
     @staticmethod
     def get_stamp_datetime_coherent():
-        ''' Return the current date time '''
+        """ Return the current date time """
         return time.strftime("%Y-%m-%d_%H_%M_%S")
+
 
 class FileUtils(object):
 
@@ -344,17 +328,18 @@ class FileUtils(object):
                 break
 
         return file_list
-    
+
+
 class FileSystemUtils(object):
     
     @staticmethod
     def mkdirs(dir_path):
-        ''' make a directory if it not exists'''
+        """ make a directory if it not exists"""
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
     
     @staticmethod
-    def getFileMd5(filePath):
+    def get_file_md5(filePath):
         if not os.path.isfile(filePath):
             return
         myhash=hashlib.md5()
@@ -368,7 +353,7 @@ class FileSystemUtils(object):
         return myhash.hexdigest()
     
     @staticmethod
-    def getFileSize(filePath):
+    def get_file_size(filePath):
         if not os.path.isfile(filePath):
             return
         else:
@@ -376,19 +361,19 @@ class FileSystemUtils(object):
         
     @staticmethod
     def get_legal_filename(fn):
-        '''
+        """
         @param fn: file name
         @return: legal file name
-        '''
+        """
         prog=re.compile(r"[\n\\/:*?\"<>|]")
         return prog.sub("",fn)
     
     @staticmethod
     def add_unique_postfix(fn):
-        ''' 
+        """ 
         @param fn: File name
         @return:  Return an unique postfix for the file name                
-        '''
+        """
         
         fn = p_compat.str(fn)
         
@@ -409,7 +394,7 @@ class FileSystemUtils(object):
 
     @staticmethod
     def force_delete_file(file_path):
-        ''' force delete a file '''
+        """ force delete a file """
         if os.path.isfile(file_path):
             try:
                 os.remove(file_path)
@@ -424,11 +409,11 @@ class ZipUtils(object):
     
     @staticmethod
     def mkzip(source_dir, output_filename):
-        '''Usage:
+        """Usage:
             p = r'D:\auto\env\ttest\ins\build\lib\rock4\softtest\support'
             mkzip(os.path.join(p, "appiumroot"),os.path.join(p, "appiumroot.zip"))
             unzip(os.path.join(p, "appiumroot.zip"),os.path.join(p, "appiumroot2"))  
-        '''
+        """
         zipf = zipfile.ZipFile(output_filename, 'w', zipfile.zlib.DEFLATED)
         pre_len = len(os.path.dirname(source_dir))
         for parent, dirnames, filenames in os.walk(source_dir):
@@ -440,11 +425,12 @@ class ZipUtils(object):
     
     @staticmethod
     def unzip(zipfilename, unziptodir):    
-        if not os.path.exists(unziptodir): os.mkdir(unziptodir)
+        if not os.path.exists(unziptodir):
+            os.mkdir(unziptodir)
         
         zfobj = zipfile.ZipFile(zipfilename)
         for name in zfobj.namelist():
-            #name = name.replace('\\','/')
+            # name = name.replace('\\','/')
            
             if name.endswith(os.sep):
                 os.mkdir(os.path.join(unziptodir, name))
@@ -456,19 +442,20 @@ class ZipUtils(object):
                 outfile = open(ext_filename, 'wb')
                 outfile.write(zfobj.read(name))
                 outfile.close()
- 
+
+
 class ModuleUtils(object):
     
     @staticmethod
     def get_callable_class_method_names(testClass):
-        '''
+        """
         @param testClass is a Class Object
         @return e.g.
             {"test": <function test at 0x03508B30>}
-        '''
-        isInstanceMethod = lambda attrname: not attrname.startswith("_") and hasattr(getattr(testClass, attrname), '__call__')
-        methods = filter(isInstanceMethod, dir(testClass))                
-        return {i : getattr(testClass,i) for i in methods}
+        """
+        is_instance_method = lambda attrname: not attrname.startswith("_") and hasattr(getattr(testClass, attrname), '__call__')
+        methods = filter(is_instance_method, dir(testClass))
+        return {i: getattr(testClass, i) for i in methods}
 
     @staticmethod
     def is_function(tup):
@@ -557,6 +544,7 @@ class ModuleUtils(object):
     
         return ModuleUtils.search_conf_item(dir_path, item_type, item_name)
 
+
 class SetupUtils(object):
     
     @staticmethod
@@ -578,17 +566,18 @@ class SetupUtils(object):
             pattern = os.path.join(source,pattern)
             for filename in glob.glob(pattern):
                 if os.path.isfile(filename):
-                    targetpath = os.path.join(target,os.path.relpath(filename,source))
+                    targetpath = os.path.join(target,os.path.relpath(filename, source))
                     path = os.path.dirname(targetpath)
                     ret.setdefault(path,[]).append(filename)
                 elif isiter and os.path.isdir(filename):
-                    source2 = os.path.join(source,filename)
-                    targetpath2 = "%s/%s" %(target,os.path.basename(filename))
+                    source2 = os.path.join(source, filename)
+                    targetpath2 = "%s/%s" % (target, os.path.basename(filename))
                     # iter_target = os.path.dirname(targetpath2)
-                    ret.update(SetupUtils.find_data_files(source2,targetpath2,patterns,isiter))
+                    ret.update(SetupUtils.find_data_files(source2, targetpath2, patterns, isiter))
                  
         return sorted(ret.items())
-    
+
+
 class CommonUtils(object):
     
     @staticmethod
@@ -652,12 +641,12 @@ class CommonUtils(object):
 
     @staticmethod
     def get_value_from_cfg(cfg_file):
-        ''' initial the configuration with file that you specify 
+        """ initial the configuration with file that you specify 
             Sample usage:            
                 config = get_value_from_cfg()            
             return:
                 return a dict        -->config[section][option]  such as config["twsm"]["dut_ip"]                
-        '''    
+        """    
     
         if not os.path.isfile(cfg_file):
             return
@@ -668,17 +657,36 @@ class CommonUtils(object):
         try:
             config.read(cfg_file)
         except Exception as e:
-    #         raise Exception("\n\tcommon exception 1.2: Not a well format configuration file. error: '%s'" %(e))
+            # raise Exception("\n\tcommon exception 1.2: Not a well format configuration file. error: '%s'" %(e))
             return        
         for section in config.sections():
             cfg[section] = {}
             for option in config.options(section):
                 cfg[section][option]=config.get(section,option)
         return cfg
-    
+
+    @staticmethod
+    def get_sorted_list(ll):
+        """ 按数字排序
+        Sample usage:
+            get_sort_list(["t1","t11","t2","t22","t3ss","t4gg"])
+        """
+
+        if not isinstance(ll, list):
+            return ll
+
+        re_digits = re.compile(r'(\d+)')
+
+        def emb_numbers(s):
+            pieces = re_digits.split(s)
+            pieces[1::2] = map(int, pieces[1::2])
+            return pieces
+
+        return sorted(ll, key=emb_numbers)
+
     @staticmethod
     def get_exception_error():
-        ''' Get the exception info
+        """ Get the exception info
         Sample usage:
             try:
                 raise Exception("asdfsdfsdf")
@@ -686,7 +694,7 @@ class CommonUtils(object):
                 print common.get_exception_error()
         Return:
             return the exception infomation.
-        '''
+        """
         error_message = ""
         for i in range(len(inspect.trace())):
             error_line = u"""
@@ -697,8 +705,8 @@ class CommonUtils(object):
             
             error_message = "%s%s" % (error_message, error_line)    
         
-        error_message = u"""Error!\n%s\n\t%s\n\t%s\n-------------------------------------------------------------------------------------------\n\n""" % (error_message,sys.exc_info()[0], sys.exc_info()[1])
-        
+        error_message = u"""Error!\n%s\n\t%s\n\t%s\n""" % (error_message, sys.exc_info()[0], sys.exc_info()[1])
+        error_message = error_message + "-" * 90 + "\n\n"
         return error_message
 
 
@@ -706,10 +714,10 @@ class ProgressBarUtils(object):
     
     @staticmethod
     def echo(transferred, toBeTransferred, suffix=''):
-        ''' usage:
+        """ usage:
             for i in range(101):
                 ProgressBarUtils.echo(i,100)
-        '''
+        """
         bar_len = 60                
         rate = transferred/float(toBeTransferred)
         
@@ -731,7 +739,7 @@ class ProgressBarUtils(object):
         self.seq = sep
             
     def echo_size(self, transferred=1, status=None):
-        '''Sample usage:
+        """Sample usage:
             
             f=lambda x,y:x+y
             ldata = range(10)
@@ -742,7 +750,7 @@ class ProgressBarUtils(object):
             for  i in ldata:
                 time.sleep(0.2)
                 progress.echo_size(transferred=i)
-        '''
+        """
         self.transferred += transferred
         # if status is not None:
         self.status = status or self.status
@@ -754,7 +762,7 @@ class ProgressBarUtils(object):
         print(self.__get_info() + end_str)
         
     def echo_percent(self,transferred=1, status=None):
-        '''Sample usage:
+        """Sample usage:
             f=lambda x,y:x+y
             ldata = range(10)
             toBeTransferred = reduce(f,range(10))
@@ -764,7 +772,7 @@ class ProgressBarUtils(object):
             for i in ldata:  
                 time.sleep(0.1)  
                 progress.echo_percent(i)
-        '''
+        """
         self.transferred += transferred
         self.status = status or self.status
         end_str = "\r"
@@ -775,24 +783,24 @@ class ProgressBarUtils(object):
     
     def __get_info(self):
         # 【名称】状态 进度 单位 分割线 总数 单位
-        _title_info = "[%s] %s " %(self.title, self.status)
-        _current_info = "%.2f %s " %(self.transferred/self.chunk_size, self.unit)
-        _total_info = "%.2f %s" %(self.toBeTransferred/self.chunk_size, self.unit)
+        _title_info = "[%s] %s " % (self.title, self.status)
+        _current_info = "%.2f %s " % (self.transferred/self.chunk_size, self.unit)
+        _total_info = "%.2f %s" % (self.toBeTransferred/self.chunk_size, self.unit)
         
         _info = _title_info + _current_info + self.seq + _total_info
         return _info
     
     def __get_bar(self):
         # 【名称】状态 进度 百分号 进度符号
-        _title_info = "[%s] %s " %(self.title, self.status)
-        _rate = "%.2f%s" %(float(self.transferred) / float(self.toBeTransferred) * 100, "%")
+        _title_info = "[%s] %s " % (self.title, self.status)
+        _rate = "%.2f%s" % (float(self.transferred) / float(self.toBeTransferred) * 100, "%")
         
         _info = _title_info + _rate + "=" * int(float(self.transferred) / float(self.toBeTransferred) * 50)
         return _info
 
-#### For testcases
+
 def seqfy(strs):
-    ''' 序列化 字符串--->实际效果是，为字符串，添加行号，返回字符串
+    """ 序列化 字符串--->实际效果是，为字符串，添加行号，返回字符串
     Sampe usage:
         strs = ["", None, u"First-line\nSecond-line\nThird-line", u"没有换行符"]
         for s in strs:
@@ -800,7 +808,7 @@ def seqfy(strs):
             result = seqfy(s)
             print result
             print unseqfy(result)
-    '''
+    """
     
     if not strs:
         return
@@ -814,15 +822,17 @@ def seqfy(strs):
             seq = seq + 1            
     return result
 
+
 def unseqfy(strs):
-    ### 反序列化字符串--->实际效果是，去掉每行字符串前面的行号， 返回字符串
+    """ 反序列化字符串--->实际效果是，去掉每行字符串前面的行号， 返回字符串
+    """
     if not strs:
         return
     
     result = ""   
     ss = strs.split("\n")
     for i in ss:
-        raw = i.split(".",1)
+        raw = i.split(".", 1)
         if len(raw) == 2:
             try:
                 int(raw[0])
@@ -835,8 +845,9 @@ def unseqfy(strs):
              
     return result
 
+
 def stepfy(strs):
-    ''' 步骤化 字符串 --->实际效果是, 依据 序列化的字符串，转换为 Step_%s_info 的字典， 返回字典
+    """ 步骤化 字符串 --->实际效果是, 依据 序列化的字符串，转换为 Step_%s_info 的字典， 返回字典
     Sample usage:
         test_strs = [
         "",
@@ -856,10 +867,10 @@ def stepfy(strs):
             print "string: %r" %i
             print "stepfy: %s" %steps
             print "unstepfy: %r\n" %un
-    '''
+    """
     
     result = {}
-    prog_step   = re.compile("^\d+\.")
+    prog_step = re.compile("^\d+\.")
       
     if not strs:
         return result
@@ -872,8 +883,10 @@ def stepfy(strs):
             result["Step_%s_info" %step_num] = raw
     return result
 
+
 def unstepfy(sdict):
-    ### 反步骤化 字符串--->实际效果是, 依据 stepfy返回的字典数据，进行反步骤化，还原数据
+    """反步骤化 字符串--->实际效果是, 依据 stepfy返回的字典数据，进行反步骤化，还原数据
+    """
     if not sdict:
         return ""
     
@@ -883,7 +896,7 @@ def unstepfy(sdict):
     result = []
     for k,v in sdict.items():
         num = k.split("_")[1]
-        result.append("%s.%s\n" %(num,v))
+        result.append("%s.%s\n" % (num, v))
     
     if result: 
         tmp = CommonUtils.get_sorted_list(result)    
@@ -891,13 +904,14 @@ def unstepfy(sdict):
                 
         return p_compat.reduce(f, tmp)
 
-def map_function(func_str, fw_action_addtion=None,bw_action_addtion=None, alias_func=None):
-    ''' Sample usage:
+
+def map_function(func_str, fw_action_addtion=None, bw_action_addtion=None, alias_func=None):
+    """ Sample usage:
         print map_function('set',alias_func = "ini_items");# -> ini_items
         print map_function('set',fw_action_addtion="action_steps_",bw_action_addtion="_for_upd",alias_func = "ini_items"); # -> action_steps_ini_items_for_upd
         print map_function('set(a=1,b=2,c=Test())',"action_steps_","_for_upd","ini_items");# -> action_steps_ini_items_for_upd(a=1,b=2,c=Test())
         print map_function('set("login",a="good",b=Test())',"action_steps_","_for_upd");# -> action_steps_set_for_upd("login",a="good",b=Test())
-    '''
+    """
     
     split_action_value = re.compile("^(\w+)(\((.*)\)$)?")
     matched   = split_action_value.match(func_str)    
@@ -905,7 +919,7 @@ def map_function(func_str, fw_action_addtion=None,bw_action_addtion=None, alias_
     if matched:
         action = matched.group(1).lower()
         value = matched.group(2)
-        #params = matched.group(3)
+        # params = matched.group(3)
         
         if alias_func:
             action = alias_func
@@ -918,7 +932,3 @@ def map_function(func_str, fw_action_addtion=None,bw_action_addtion=None, alias_
             return action+value
         else:
             return action      
-
-    
-        
-
