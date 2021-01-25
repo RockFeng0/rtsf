@@ -1,22 +1,5 @@
+#! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: pyrunner.p_applog
-
-Rough version history:
-v1.0    Original version to use
-v2.0    define some normal functions for this module which act as Log Center
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:    lkf20031988@163.com    
-    RCS:      rtsf.p_applog,v 2.0 2017年2月7日
-    FROM:     2015年4月14日
-********************************************************************
-            
-======================================================================
-
-Provide a package for the log
-
-'''
 
 import os,logging,sys
 from colorama import Back, Fore, Style, init
@@ -30,13 +13,15 @@ def coloring(msg, color="WHITE"):
     fore_color = getattr(Fore, color.upper())
     return fore_color + msg
 
+
 def color_print(msg, color="WHITE"):
     fore_color = getattr(Fore, color.upper())
     print(fore_color + msg)
-    
+
+
 class AppLog(object):
-    ''' record the logs with your preference  '''
-    def __init__(self,logger_name = None):
+    """ record the logs with your preference  """
+    def __init__(self,logger_name=None):
         self.logger = logging.getLogger(logger_name)
         self.log_colors = {}        
         self.formatter = logging.Formatter(u'#%(asctime)s %(levelname)-8s: %(message)s')
@@ -85,7 +70,7 @@ class AppLog(object):
     def log_critical(self):
         return self._tolog("critical")
     
-    def _tolog(self,level):
+    def _tolog(self, level):
         """ log with different level """
         def wrapper(msg):
             if self.log_colors:
@@ -104,7 +89,7 @@ class AppLog(object):
         else:
             raise p_exception.DirectoryNotFound(file_path)
     
-    def _handle2screen(self, color = False):
+    def _handle2screen(self, color=False):
         ch = logging.StreamHandler()
         
         if color:
