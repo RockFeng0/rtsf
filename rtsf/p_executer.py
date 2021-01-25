@@ -1,32 +1,17 @@
+#! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: pyrunner.p_executer
 
-Rough version history:
-v1.0    Original version to use
-v1.1    add 'launch_mobile' function
-v2.1    reconstitute this module with unittest and support mutil runner 
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:    lkf20031988@163.com    
-    RCS:     rtsf.p_executer,v 2.1 2018年9月2日
-    FROM:   2015年5月11日
-********************************************************************
-
-======================================================================
-
-UI and Web Http automation frame for python.
-
-'''
-
-
-import unittest,sys,os
-import multiprocessing,threading
+import os
+import sys
+import unittest
+import threading
+import multiprocessing
 from functools import partial
 from rtsf.p_applog import logger
 from rtsf.p_tracer import Tracer
 from rtsf.p_testcase import YamlCaseLoader,parse_project_data
-from rtsf import p_testcase, p_compat,p_exception
+from rtsf import p_testcase, p_compat, p_exception
+
 
 class TestCase(unittest.TestCase):
     """ create a testcase.
@@ -105,7 +90,8 @@ class TestSuite(unittest.TestSuite):
     @property
     def tests(self):                
         return self._tests
-   
+
+
 class TaskSuite(unittest.TestSuite):
     """ create task suite with specified testcase path.
         each task suite may include one or several test suite.
@@ -157,6 +143,7 @@ def init_test_suite(path_or_testsets, runner_cls):
 
     return TaskSuite(testsets, runner_cls)
 
+
 class TestRunner(object):
 
     def __init__(self, **kwargs):
@@ -205,11 +192,12 @@ class TestRunner(object):
             for reporter in reporters:
                 html_report.extend(reporter.generate_html_report(proj_name, proj_module=None))
         return html_report        
-        
+
+
 class Runner(object):
     
     def __init__(self):
-        '''
+        """
         @note: maybe override variables
             _default_devices -> list type; to genrate tracer map, format is `{device_id: tracer_obj}`
                             e.g.
@@ -219,13 +207,13 @@ class Runner(object):
                             e.g.
                                 default ("", None) use to run case with a driver;
                                 [("192.168.0.1:5555":selenium_driver), ("192.168.0.2:5555":appium_driver), ...] use for multiple process to run case with specified drivers                      
-        '''
+        """
         self._default_devices = [""]
         self._default_drivers = [("",None)]
         self._local_driver = True
     
     def init_runner(self, parser, tracers, projinfo):
-        ''' initial some instances for preparing to run test case
+        """ initial some instances for preparing to run test case
         @note:  should not override
         @param parser: instance of TestCaseParser
         @param tracers: dict type for the instance of Tracer. Such as {"":tracer_obj} or {"192.168.0.1:5555":tracer_obj1, "192.168.0.2:5555":tracer_obj2} 
@@ -237,25 +225,25 @@ class Runner(object):
             dict case like:
                 {"project": {"name": xxx, "module": xxxx}}            
                 
-        '''
+        """
         self.parser = parser
         self.tracers = tracers
         self.proj_info = projinfo
         
     def run_test(self, testcase_dict, variables, driver_map):
-        ''' define how to run a case. override this method
+        """ define how to run a case. override this method
         @param testcase_dice:  yaml case
         @param driver_map:  device id map to a driver 
               
-        '''
+        """
         fn, _ = driver_map
         reporter = self.tracers[fn]
         
         parser = self.parser
         parser.update_binded_variables(variables)
         
-        case_name = parser.eval_content_with_bind_actions(testcase_dict.get("name",u'rtsf'))
-        reporter.start(self.proj_info["module"], case_name, testcase_dict.get("responsible",u"rock feng"), testcase_dict.get("tester",u"rock feng"))
+        case_name = parser.eval_content_with_bind_actions(testcase_dict.get("name", u'rtsf'))
+        reporter.start(self.proj_info["module"], case_name, testcase_dict.get("responsible", u"rock feng"), testcase_dict.get("tester", u"rock feng"))
         reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
         
         reporter.section(u"------------section ok")
@@ -266,13 +254,13 @@ class Runner(object):
         return reporter
     
     def _run_test(self, testcase_dict, variables={}):
-        ''' guide the running case
+        """ guide the running case
         @param testcase_dice:  yaml case
         @param variables: dict type; this is defined the variables for the data-driven test
                             e.g.
                                 default {} use to run case without data-driven
                                 {"username":"test1","password":"123456"}
-        '''
+        """
         if self._local_driver:
             self.run_test(testcase_dict, variables, self._default_drivers[0])
         else:
@@ -280,10 +268,10 @@ class Runner(object):
             self._run_grid_multithread(partial(self.run_test, testcase_dict, variables), self._default_drivers)
             
     def _run_grid_multiprocess(self, func, iterables):
-        ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
+        """ running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
         @param func:  function object
         @param iterables:  iterable objects
-        '''
+        """
         multiprocessing.freeze_support()
         pool = multiprocessing.Pool()        
         pool_tracers = pool.map(func, iterables)
@@ -294,15 +282,14 @@ class Runner(object):
         self.tracers = dict(zip(self._default_devices, pool_tracers))
     
     def _run_grid_multithread(self, func, iterables):
-        ''' running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
+        """ running case with mutil process to support selenium grid-mode(multiple web) and appium grid-mode(multiple devices). 
         @param func:  function object
         @param iterables:  iterable objects
-        '''
+        """
         
-        f = lambda x: threading.Thread(target = func,args = (x,))
+        f = lambda x: threading.Thread(target=func, args=(x,))
         threads = map(f, iterables)
         for thread in threads:
             thread.setDaemon(True)
             thread.start()
             thread.join()
-            
