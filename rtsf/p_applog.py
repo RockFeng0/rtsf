@@ -112,5 +112,6 @@ class AppLog(object):
             ch.setFormatter(self.formatter)
             
         self.logger.addHandler(ch)
-          
+
+
 logger = AppLog()
