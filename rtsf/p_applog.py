@@ -1,12 +1,14 @@
 #! python3
 # -*- encoding: utf-8 -*-
 
-import os,logging,sys
+import os
+import sys
+import logging
+from rtsf import p_exception
+
 from colorama import Back, Fore, Style, init
 from colorlog import ColoredFormatter
 init(autoreset=True)
-
-from rtsf import p_exception
 
 
 def coloring(msg, color="WHITE"):
@@ -21,7 +23,7 @@ def color_print(msg, color="WHITE"):
 
 class AppLog(object):
     """ record the logs with your preference  """
-    def __init__(self,logger_name=None):
+    def __init__(self, logger_name=None):
         self.logger = logging.getLogger(logger_name)
         self.log_colors = {}        
         self.formatter = logging.Formatter(u'#%(asctime)s %(levelname)-8s: %(message)s')
@@ -33,7 +35,7 @@ class AppLog(object):
             @param log_file: log file path
             @param logger_name: the name of logger, default is 'root' if not specify
         """
-        applogger = AppLog(logger_name)
+        app_logger = AppLog(logger_name)
         level = getattr(logging, log_level.upper(), None)
         if not level:
             color_print("Invalid log level: %s" % log_level, "RED")
@@ -44,11 +46,11 @@ class AppLog(object):
             sys.tracebacklimit = 0
     
         if log_file:
-            applogger._handle2file(log_file)
+            app_logger._handle2file(log_file)
         else:
-            applogger._handle2screen(color = True)
+            app_logger._handle2screen(color=True)
         
-        applogger.logger.setLevel(level)
+        app_logger.logger.setLevel(level)
     
     @property
     def log_debug(self):
