@@ -1,34 +1,19 @@
 #! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: rtsf.p_yaml_cases
 
-Rough version history:
-v1.0    Original version to use
-
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:    lkf20031988@163.com
-    RCS:      rtsf.p_testcase,v 1.0 2018年7月14日
-    FROM:   2018年7月14日
-********************************************************************
-
-======================================================================
-
-UI and Web Http automation frame for python.
-
-'''
-
-import os,re,random,ast
+import os
+import re
+import random
+import ast
 from rtsf.p_applog import logger
 from rtsf import p_exception,p_compat
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils,FileUtils
 from rtsf.p_compat import numeric_types,builtin_str
 
-
 variable_regexp = r"\$([\w_]+)"
 function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
 function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-_ =,]*)\)$")
+
 
 def extract_variables(content):
     """ extract all variable names from content, which is in format $variable
@@ -48,6 +33,7 @@ def extract_variables(content):
     except TypeError:
         return []
 
+
 def extract_functions(content):
     """ extract all functions from string content, which are in format ${fun()}
     @param (str) content
@@ -66,6 +52,7 @@ def extract_functions(content):
     except TypeError:
         return []
 
+
 def parse_string_value(str_value):
     """ parse string to number if possible
     e.g. "123" => 123
@@ -80,6 +67,7 @@ def parse_string_value(str_value):
     except SyntaxError:
         # e.g. $var, ${func}
         return str_value
+
 
 def parse_function(content):
     """ parse function name and args from string content.
@@ -115,6 +103,7 @@ def parse_function(content):
             function_meta["args"].append(parse_string_value(arg))
 
     return function_meta
+
 
 def substitute_variables_with_mapping(content, mapping):
     """ substitute variables in content with mapping
@@ -175,6 +164,7 @@ def substitute_variables_with_mapping(content, mapping):
 
     return content
 
+
 def parse_project_data(data, testset_path=None):
     """ parse project data and generate cartesian product
     @param data: list type            
@@ -195,6 +185,7 @@ def parse_project_data(data, testset_path=None):
             parsed_parameters_list.append(csv_list_of_dict_data)
             
     return CommonUtils.gen_cartesian_product(*parsed_parameters_list)
+
 
 class TestCaseParser(object):
 #     def __init__(self, action_class_name, preference_action_file):        
@@ -227,26 +218,26 @@ class TestCaseParser(object):
         self._functions = functions
         
     def get_bind_variable(self, variable_name):
-        '''
+        """
         @return: the value of variable_name
-        '''
+        """
         return self._get_bind_item("variable", variable_name)
-    
-    
+
+
     def get_bind_function(self, func_name):
-        '''
+        """
         @param func_name: function name
         @return: object of func_name
-        '''
+        """
         return self._get_bind_item("function", func_name)
-    
+
     def get_csv_data(self, csv_file_name, fetch_method="Sequential"):
-        ''' get csv data
+        """ get csv data
         @note:  first line should be define variable in csv file
         @param csv_file_name: csv file name
         @param fetch_method: Sequential or Random
         @return: list of dict
-        '''
+        """
         parameter_file_path = os.path.join(
             os.path.dirname(self.file_path),
             "{}".format(csv_file_name)
@@ -257,10 +248,10 @@ class TestCaseParser(object):
             random.shuffle(csv_content_list)
 
         return csv_content_list
-    
-    def _get_bind_item(self, item_type, item_name):        
-        
-        if item_type == "function":            
+
+    def _get_bind_item(self, item_type, item_name):
+
+        if item_type == "function":
             if item_name in self._functions:
                 return self._functions[item_name]
             else:
@@ -273,18 +264,18 @@ class TestCaseParser(object):
             raise p_exception.ParamsError("bind item should only be function or variable.")
 
         try:
-            # preference functions            
+            # preference functions
             assert self.file_path is not None
             return ModuleUtils.search_conf_item(self.file_path, item_type, item_name)
         except (AssertionError, p_exception.FunctionNotFound):
             raise p_exception.ParamsError(
                 "{} is not defined in bind {}s!".format(item_name, item_type))
-             
+
     def eval_content_with_bind_actions(self, content):
         """ parse content recursively, each variable and function in content will be evaluated.
 
         @param content =>  any data structure with ${func} or $variable
-            
+
         """
         if content is None:
             return None
@@ -312,17 +303,17 @@ class TestCaseParser(object):
 
             # replace variables with binding value
             content = self._eval_content_variables(content)
-            
+
         return content
-    
+
     def _eval_content_functions(self, content):
         functions_list = extract_functions(content)
         for func_content in functions_list:
             function_meta = parse_function(func_content)
             func_name = function_meta['func_name']
-            
+
             args = function_meta.get('args', [])
-            kwargs = function_meta.get('kwargs', {})            
+            kwargs = function_meta.get('kwargs', {})
             args = self.eval_content_with_bind_actions(args)
             kwargs = self.eval_content_with_bind_actions(kwargs)
 
@@ -330,46 +321,46 @@ class TestCaseParser(object):
             eval_value = func(*args, **kwargs)
 
             func_content = "${" + func_content + "}"
-                            
+
             if func_content == content:
-                
+
                 logger.log_debug(u"eval functions result: {} -> {}".format(func_content, eval_value))
-                
+
                 # content is a variable
                 content = eval_value
             else:
                 tmp = content
-                
+
                 # content contains one or many variables
                 content = content.replace(
                     func_content,
                     p_compat.str(eval_value), 1
                 )
-                
+
                 logger.log_debug(u"eval functions result: {} -> {}".format(tmp, content))
-        
+
         return content
-    
+
     def _eval_content_variables(self, content):
         variables_list = extract_variables(content)
-        
+
         for variable_name in variables_list:
             variable_value = self.get_bind_variable(variable_name)
-                        
+
             if "${}".format(variable_name) == content:
-                
+
                 logger.log_debug(u"eval variables result: ${} -> {}".format(variable_name, variable_value))
-                
-                # content is a variable                
+
+                # content is a variable
                 content = variable_value
             else:
                 tmp = content
-                                
+
                 # content contains one or several variables
                 content = content.replace("${}".format(variable_name),p_compat.str(variable_value), 1)
-                
+
                 logger.log_debug(u"eval variables result: {} -> {}".format(tmp, content))
-                
+
         return content
 
 
@@ -379,38 +370,38 @@ class YamlCaseLoader(object):
         "suite": {}
     }
     testcases_cache_mapping = {}
-             
+
     def translate(self):
-        ''' usage:
+        """ usage:
             m = YamlCaseLoader(r"D:\auto\buffer\test.yaml")
             for i in m.translate():print(i)
         :return iterator (case_name, execute_function)
-        
+
         @note:  this method is useless
-        '''
+        """
         if not self.check():
-            return 
-        
+            return
+
         for idx in range(len(self.testcases)):
             testing = self.testcases[idx]
             case_id = testing.get("testcaseid")
             case_name = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id,p_compat.str(testing[self.__case_title_field])))
-                         
+
             # executer actions
             execute_actionss = []
             for field in self.__executer_seq_fields:
-                steps_info = testing.get(field)                                
+                steps_info = testing.get(field)
                 for execute_function in steps_info:
                     if not execute_function:
                         continue
-                    execute_actionss.append(execute_function)                
+                    execute_actionss.append(execute_function)
             yield (case_name, execute_actionss, idx)
-    
+
     def check(self):
-        ''' usage:
+        """ usage:
             print(YamlModel(r"D:\auto\buffer\test.yaml").check()    )
         :return Ture/False
-        '''
+        """
         result = True
         self.testcases,invalid_cases = self.getYamlCasesValue()
         if invalid_cases:
@@ -421,13 +412,13 @@ class YamlCaseLoader(object):
         elif not self.testcases:
             print('Warning: Invalid Yaml Test Model.')
             result = False
-            
+
         return result
-    
+
     @staticmethod
     def load_dependencies(path_or_yamlfile):
         """ load all api and suite definitions.
-        @param path_or_yamlfile:  dir path or yamlfile path where have api folder and suite folder 
+        @param path_or_yamlfile:  dir path or yamlfile path where have api folder and suite folder
         """
         if os.path.isdir(path_or_yamlfile):
             # cases path
@@ -435,10 +426,10 @@ class YamlCaseLoader(object):
         else:
             # case file path
             path = os.path.join(os.path.dirname(os.path.abspath(path_or_yamlfile)), "dependencies")
-            
+
         api_def_folder = os.path.join(path, "api")
         suite_def_folder = os.path.join(path, "suite")
-                
+
         # load api definitions
         for test_file in FileUtils.load_folder_files(api_def_folder):
             YamlCaseLoader.load_api_file(test_file)
@@ -446,7 +437,7 @@ class YamlCaseLoader(object):
         # load suite definitions
         for suite_file in FileUtils.load_folder_files(suite_def_folder):
             suite = YamlCaseLoader.load_file(suite_file)
-            
+
             if "def" not in suite["project"]:
                 raise p_exception.ParamsError("def missed in suite file: {}!".format(suite_file))
 
@@ -454,7 +445,7 @@ class YamlCaseLoader(object):
             function_meta = parse_function(call_func)
             suite["function_meta"] = function_meta
             YamlCaseLoader.overall_def_dict["suite"][function_meta["func_name"]] = suite
-    
+
     @staticmethod
     def load_api_file(file_path):
         """ load api definition from file and store in overall_def_dict["api"]
@@ -482,83 +473,82 @@ class YamlCaseLoader(object):
 
             api_dict["function_meta"] = function_meta
             YamlCaseLoader.overall_def_dict["api"][func_name] = api_dict
-                    
+
     @staticmethod
     def load_file(yaml_file):
-        ''' load yaml file
-        @param yaml_file: yaml file path
-        @return: testset 
-        
-        '''
+        """ load yaml file
+        :param yaml_file: yaml file path
+        :return: testset
+        """
         testset = {
             "file_path": yaml_file,
             "project": {},
             "cases": [],
         }
-        
-        if not os.path.isfile(yaml_file):        
+
+        if not os.path.isfile(yaml_file):
             raise p_exception.FileNotFoundError("Not found testcase file {}.".format(yaml_file))
-        
+
         try:
             test_cases = FileUtils.load_file(yaml_file)
             logger.log_debug(u"Yaml raw dict: {}".format(test_cases))
-            
+
             for item in test_cases:
                 if not isinstance(item, dict) or len(item) != 1:
                     raise p_exception.FileFormatError("Testcase format error: {}".format(yaml_file))
-    
+
                 key, test_block = item.popitem()
                 if not isinstance(test_block, dict):
                     raise p_exception.FileFormatError("Testcase format error: {}".format(yaml_file))
-    
+
                 if key == "project":
                     testset["project"].update(test_block)
                     testset["name"] = test_block.get("module", "Default Test Set")
-    
+
                 elif key == "case":
-#                     case_id = test_block.pop("id","")                    
+#                     case_id = test_block.pop("id","")
 #                     if not case_id:
 #                         raise p_exception.ModelFormatError("Some cases do not have 'case_id'.")
 #                     if not re.search("^[\w-]+$",case_id):
 #                         raise p_exception.ModelFormatError("Invalid case_id: {}".format(case_id))
-                    
+
                     name = test_block.get("name")
                     if not name:
                         raise p_exception.ModelFormatError("Some cases do not have 'name'.")
-                    
-                    test_block["name"] = name                    
+
+                    test_block["name"] = name
                     if "api" in test_block:
                         ref_call = test_block["api"]
                         def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
                         YamlCaseLoader._override_block(def_block, test_block)
                         logger.log_debug(u"merged api block: {}".format(test_block))
                         testset["cases"].append(test_block)
-                        
+
                     elif "suite" in test_block:
                         ref_call = test_block["suite"]
                         block = YamlCaseLoader._get_block_by_name(ref_call, "suite")
                         logger.log_debug(u"extend suite block: {}".format(block["cases"]))
                         testset["cases"].extend(block["cases"])
-                        
+
                     else:
                         testset["cases"].append(test_block)
-    
+
                 else:
                     logger.log_warning("Unexpected block key: '{0}' in '{1}', should only be ['project' or 'case']".format(key, yaml_file))
-            
+
         except:
             logger.log_error(CommonUtils.get_exception_error())
         finally:
             return testset
-    
+
     @staticmethod
     def load_files(path):
         """ load yaml testcases from file path
-        @param path: path could be in several type
+        :param path: path could be in several type
             - absolute/relative file path
             - absolute/relative folder path
             - list/set container with file(s) and/or folder(s)
-        @return testcase sets list, each testset is corresponding to a file
+        :return testcase sets list, each testset is corresponding to a file
             [
                 testset_dict_1,
                 testset_dict_2
@@ -590,7 +580,7 @@ class YamlCaseLoader(object):
         elif os.path.isfile(path):
             try:
                 testset = YamlCaseLoader.load_file(path)
-                
+
                 if testset["cases"]:
                     testcases_list = [testset]
                 else:
@@ -604,13 +594,12 @@ class YamlCaseLoader(object):
 
         YamlCaseLoader.testcases_cache_mapping[path] = testcases_list
         return testcases_list
-    
+
     @staticmethod
     def _get_block_by_name(ref_call, ref_type):
         """ get test content by reference name
-        @params:
-            ref_call: e.g. api_v1_Account_Login_POST($UserName, $Password)
-            ref_type: "api" or "suite"
+        :param ref_call: e.g. api_v1_Account_Login_POST($UserName, $Password)
+        :param ref_type: "api" or "suite"
         """
         function_meta = parse_function(ref_call)
         func_name = function_meta["func_name"]
@@ -638,11 +627,9 @@ class YamlCaseLoader(object):
     @staticmethod
     def _get_test_definition(name, ref_type):
         """ get expected api or suite.
-        @params:
-            name: api or suite name
-            ref_type: "api" or "suite"
-        @return
-            expected api info if found, otherwise raise ApiNotFound exception
+        :param name: api or suite name
+        :param ref_type: "api" or "suite"
+        :return expected api info if found, otherwise raise ApiNotFound exception
         """
         block = YamlCaseLoader.overall_def_dict.get(ref_type, {}).get(name)
 
@@ -651,16 +638,16 @@ class YamlCaseLoader(object):
             if ref_type == "api":
                 raise p_exception.ApiNotFound(err_msg)
             else:
-                # ref_type == "suite"                
+                # ref_type == "suite"
                 raise p_exception.SuiteNotFound(err_msg)
 
         return block
 
     @staticmethod
     def _override_block(def_block, current_block):
-        ''' override def_block with current_block
+        """ override def_block with current_block
             @note: def_block is not effect if current_block has value
-        '''
+        """
         
         merge_keys = ("pre_command", "post_command", "verify")        
         merge_keys_value = [(key, def_block.get(key, []), current_block.get(key, [])) for key in merge_keys]
@@ -673,7 +660,8 @@ class YamlCaseLoader(object):
             else:
                 current_block[key] = current
         current_block['name'] = merge_name                                
-        
+
+
 def is_testset(data_structure):
     """ check if data_structure is a testset
     testset should always be in the following data structure:
@@ -694,6 +682,7 @@ def is_testset(data_structure):
 
     return True
 
+
 def is_testsets(data_structure):
     """ check if data_structure is testset or testsets
     testsets should always be in the following data structure:
@@ -712,6 +701,3 @@ def is_testsets(data_structure):
             return False
 
     return True
-
-
-

@@ -1,27 +1,13 @@
 #! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: rtsf.tests.test_p_testcase
 
-Rough version history:
-v1.0    Original version to use
-
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:     luokefeng@163.com
-    RCS:      rtsf.tests.test_p_testcase,  v1.0 2018年7月19日
-    FROM:   2018年7月19日
-********************************************************************
-======================================================================
-
-Provide a function for the automation test
-
-'''
-
-import unittest, shutil,os
+import os
+import shutil
+import unittest
 from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, substitute_variables_with_mapping,parse_project_data
 from rtsf.p_common import FileSystemUtils
 from rtsf.p_applog import logger
+
 
 class TestPublicFuction(unittest.TestCase):
     
@@ -29,10 +15,10 @@ class TestPublicFuction(unittest.TestCase):
         content = {
             'request': {
                 'url': '/api/users/$uid',
-                'headers': {'token': '$token',"username": "$username", "uid":"$uid"},           
+                'headers': {'token': '$token', "username": "$username", "uid": "$uid"},
             }
         }
-        mapping = {"$uid": 1000, "$username":"luokefeng", "$password":123456}
+        mapping = {"$uid": 1000, "$username": "luokefeng", "$password": 123456}
         
         result = substitute_variables_with_mapping(content, mapping)
         print(result)
@@ -73,7 +59,8 @@ class TestPublicFuction(unittest.TestCase):
                                     }]
         
         self.assertEqual(parse_project_data(sequential_data, testset_path = file_path), sequential_expected_result)
-                                       
+
+
 class TestYamlCaseLoader(unittest.TestCase):
     
     def setUp(self):
@@ -150,15 +137,15 @@ class TestYamlCaseLoader(unittest.TestCase):
 class TestTestCaseParser(unittest.TestCase):
     
     def setUp(self):
-        self._variables = {'v1':"hello", "v2":"world", "v3":123, "v4": 0.1234}
+        self._variables = {'v1': "hello", "v2": "world", "v3": 123, "v4": 0.1234}
         self._functions = {"f1": lambda: "f1", "f2": lambda: "f2"}
         self._file_path = r'data\testcases\preference.py'
     
     def test_init_variables(self):        
         
-        parser = TestCaseParser(variables = self._variables, 
-                                functions= self._functions,
-                                file_path= self._file_path)
+        parser = TestCaseParser(variables=self._variables,
+                                functions=self._functions,
+                                file_path=self._file_path)
         
         # test variables
         for v in self._variables:
@@ -173,8 +160,7 @@ class TestTestCaseParser(unittest.TestCase):
         
         # test file functions
         self.assertEqual(parser.get_bind_function("test_func")(), "nihao")
-    
-    
+
     def test_update_binded_variables(self):
         parser = TestCaseParser()
         parser.update_binded_variables(self._variables)
@@ -213,14 +199,14 @@ class TestTestCaseParser(unittest.TestCase):
         self.assertIsInstance(result1, list)
         self.assertIsInstance(result1[0], dict) 
         
-        result2 = parser.get_csv_data("username_password.csv","Random")
+        result2 = parser.get_csv_data("username_password.csv", "Random")
         self.assertIsInstance(result2, list)
         self.assertIsInstance(result2[0], dict)    
                 
     def test_eval_content_with_bind_actions_normal_struct(self):
-        parser = TestCaseParser(variables = self._variables, 
-                                functions= self._functions,
-                                file_path= self._file_path)
+        parser = TestCaseParser(variables=self._variables,
+                                functions=self._functions,
+                                file_path=self._file_path)
          
         normal_struct = "${f1()} say $v1 $v2,  preference.py set test_var to '$test_var' and test_func to '${test_func()}'"
         expect = "f1 say hello world,  preference.py set test_var to 'hello world' and test_func to 'nihao'"
@@ -228,9 +214,9 @@ class TestTestCaseParser(unittest.TestCase):
         self.assertEqual(actual, expect)
     
     def test_eval_content_with_bind_actions_list_struct(self):
-        parser = TestCaseParser(variables = self._variables, 
-                                functions= self._functions,
-                                file_path= self._file_path)
+        parser = TestCaseParser(variables=self._variables,
+                                functions=self._functions,
+                                file_path=self._file_path)
          
         list_struct = ["$v1", "$v2", '${f1()}', "${f2()}", "$test_var", '${test_func()}']
         expect = ["hello", "world", "f1", "f2", "hello world", "nihao"]
@@ -238,9 +224,9 @@ class TestTestCaseParser(unittest.TestCase):
         self.assertEqual(actual, expect)         
     
     def test_eval_content_with_bind_actions_dict_struct(self):
-        parser = TestCaseParser(variables = self._variables, 
-                                functions= self._functions,
-                                file_path= self._file_path)
+        parser = TestCaseParser(variables=self._variables,
+                                functions=self._functions,
+                                file_path=self._file_path)
          
         dict_struct = {
             "variable": "$v1",
@@ -258,10 +244,12 @@ class TestTestCaseParser(unittest.TestCase):
         actual = parser.eval_content_with_bind_actions(dict_struct)
         self.assertEqual(actual, expect)       
 
+
 if __name__ == '__main__':
 #     logger.setup_logger("debug")
     unittest.main(verbosity=2)
- #     suite = unittest.TestSuite()
+ 
+#     suite = unittest.TestSuite()
 #     #suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestYamlCaseLoader))
 #     suite.addTest(TestYamlCaseLoader("test_load_dependencies_from_file"))    
 #     runner = unittest.TextTestRunner(verbosity=2)

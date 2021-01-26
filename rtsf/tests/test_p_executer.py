@@ -1,29 +1,15 @@
 #! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: rtsf.tests.test_p_executer
 
-Rough version history:
-v1.0    Original version to use
-
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:     luokefeng@163.com
-    RCS:      rtsf.tests.test_p_executer,  v1.0 2018年7月19日
-    FROM:   2018年7月19日
-********************************************************************
-======================================================================
-
-Provide a function for the automation test
-
-'''
-
-import unittest,os,shutil
-from rtsf.p_executer import TestRunner,Runner,TaskSuite, TestSuite, TestCase, init_test_suite
+import os
+import shutil
+import unittest
+from rtsf.p_executer import TestRunner, Runner, TaskSuite, TestSuite, TestCase, init_test_suite
 from rtsf.p_report import HtmlReporter
 from rtsf.p_testcase import TestCaseParser
 from rtsf.p_common import FileSystemUtils
 from rtsf.p_applog import logger
+
 
 class TestTestRunner(unittest.TestCase):
     
@@ -52,8 +38,7 @@ class TestTestRunner(unittest.TestCase):
                     'name': '登陆模块-功能测试'
                     }
         self.testsets2 = self.testsets.copy()
-        
-    
+
     def test_init_test_suite_from_file(self):
         task_obj = init_test_suite(self.case, Runner)
         
@@ -74,8 +59,7 @@ class TestTestRunner(unittest.TestCase):
         self.assertEqual(len(suite.tests), 12)        
         case = suite.tests[0]
         self.assertIsInstance(case, TestCase)
-        
-    
+
     def test_init_test_suite_from_dir(self):
         cases_path = r'test_tmp\testcases'
         p1 = os.path.join(cases_path, "t1")
@@ -152,5 +136,3 @@ if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)    
 
-    
-    
