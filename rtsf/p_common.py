@@ -432,14 +432,20 @@ class ZipUtils(object):
             os.mkdir(unziptodir)
 
         zfobj = zipfile.ZipFile(zipfilename)
-        for name in zfobj.namelist():
-            # name = name.replace('\\','/')
+        for z_info in zfobj.infolist():
+            name = z_info.filename
 
             if name.endswith(os.sep):
                 os.mkdir(os.path.join(unziptodir, name))
             else:
-                ext_filename = os.path.join(unziptodir, name)
-                ext_dir= os.path.dirname(ext_filename)
+                if z_info.flag_bits == 2048:
+                    # ZipUtils.mkzip
+                    ext_filename = os.path.join(unziptodir, name)
+                    # ext_filename = os.path.join(unziptodir, name.encode('utf-8'))
+                else:
+                    ext_filename = os.path.join(unziptodir, name.encode('cp437').decode('gbk'))
+
+                ext_dir = os.path.dirname(ext_filename)
                 if not os.path.exists(ext_dir):
                     os.makedirs(ext_dir)
                 outfile = open(ext_filename, 'wb')
