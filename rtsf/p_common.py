@@ -428,12 +428,13 @@ class ZipUtils(object):
 
     @staticmethod
     def unzip(zipfilename, unziptodir):
-        if not os.path.exists(unziptodir):
-            os.mkdir(unziptodir)
+        if not os.path.exists(unziptodir): os.mkdir(unziptodir)
 
         zfobj = zipfile.ZipFile(zipfilename)
+
         for z_info in zfobj.infolist():
-            name = z_info.filename
+            name = z_info.filename.replace('\\', '/')
+            # print("zip file {} flag bits is {}".format(name, z_info.flag_bits))
 
             if name.endswith(os.sep):
                 os.mkdir(os.path.join(unziptodir, name))
@@ -445,12 +446,15 @@ class ZipUtils(object):
                 else:
                     ext_filename = os.path.join(unziptodir, name.encode('cp437').decode('gbk'))
 
-                ext_dir = os.path.dirname(ext_filename)
+                ext_dir, ext_file = os.path.split(ext_filename)
                 if not os.path.exists(ext_dir):
                     os.makedirs(ext_dir)
-                outfile = open(ext_filename, 'wb')
-                outfile.write(zfobj.read(name))
-                outfile.close()
+
+                if ext_file == '':
+                    continue
+
+                with open(ext_filename, 'wb') as f:
+                    f.write(zfobj.read(name))
 
 
 class ModuleUtils(object):
