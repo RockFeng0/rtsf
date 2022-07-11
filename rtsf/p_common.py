@@ -433,19 +433,21 @@ class ZipUtils(object):
         zfobj = zipfile.ZipFile(zipfilename)
 
         for z_info in zfobj.infolist():
-            name = z_info.filename.replace('\\', '/')
-            # print("zip file {} flag bits is {}".format(name, z_info.flag_bits))
+            z_name = z_info.filename.replace('\\', '/')
 
-            if name.endswith(os.sep):
-                os.mkdir(os.path.join(unziptodir, name))
+            if z_info.flag_bits == 2048:
+                # For UTF8, such as ZipUtils.mkzip
+                ext_filename = os.path.join(unziptodir, z_name)
+                # ext_filename = os.path.join(unziptodir, name.encode('utf-8'))
+                # print("UTF8:------", ext_filename)
             else:
-                if z_info.flag_bits == 2048:
-                    # ZipUtils.mkzip
-                    ext_filename = os.path.join(unziptodir, name)
-                    # ext_filename = os.path.join(unziptodir, name.encode('utf-8'))
-                else:
-                    ext_filename = os.path.join(unziptodir, name.encode('cp437').decode('gbk'))
+                # For GBK
+                ext_filename = os.path.join(unziptodir, z_name.encode('cp437').decode('gbk'))
+                # print("GBK:------", ext_filename)
 
+            if z_name.endswith(os.sep):
+                os.mkdir(ext_filename)
+            else:
                 ext_dir, ext_file = os.path.split(ext_filename)
                 if not os.path.exists(ext_dir):
                     os.makedirs(ext_dir)
@@ -454,7 +456,7 @@ class ZipUtils(object):
                     continue
 
                 with open(ext_filename, 'wb') as f:
-                    f.write(zfobj.read(name))
+                    f.write(zfobj.read(z_name))
 
 
 class ModuleUtils(object):
