@@ -1,23 +1,9 @@
 #! python3
 # -*- encoding: utf-8 -*-
-'''
-Current module: setup
 
-Rough version history:
-v1.0    Original version to use
-
-********************************************************************
-    @AUTHOR:  Administrator-Bruce Luo(罗科峰)
-    MAIL:     luokefeng@163.com
-    RCS:      setup,  v1.0 2018年7月23日
-    FROM:   2018年7月23日
-********************************************************************
-======================================================================
-
-Provide a function for the automation test
-
-'''
-import os, io, sys
+import os
+import io
+import sys
 from shutil import rmtree
 from rtsf import __about__
 from setuptools import find_packages, setup, Command
@@ -34,6 +20,7 @@ install_requires = [
     "colorlog",
     "urllib3",
 ]
+
 
 class UploadCommand(Command):
     """ Build and publish this package.
