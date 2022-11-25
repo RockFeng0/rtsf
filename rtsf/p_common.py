@@ -231,7 +231,7 @@ class FileUtils(object):
         """
         # FileUtils._check_format(yaml_file, data)
         with io.open(yaml_file, 'w', encoding='utf-8') as stream:
-            yaml.dump(data, stream)
+            yaml.dump(data, stream, allow_unicode=True)
 
     @staticmethod
     def _load_json_file(json_file):
