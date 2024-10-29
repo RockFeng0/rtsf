@@ -35,10 +35,12 @@ class AppLog(object):
         if log_level >= logging.INFO:
             sys.tracebacklimit = 0
 
-        # 默认打印console日志
+        # 添加文件日志
         if log_file:
-            self._handle2file(log_file)
-        self._handle2screen()
+            self.to_file(log_file)
+
+        # 默认打印console日志
+        self.to_console()
         self._logger.setLevel(log_level)
 
     def get_logger(self):
@@ -75,8 +77,8 @@ class AppLog(object):
     #
     #     return wrapper
                
-    def _handle2file(self, file_path):
-        """ 文件 记录Debug级别日志
+    def to_file(self, file_path):
+        """ 添加文件日志 记录Debug级别日志
         :return:
         """
         if os.path.isdir(os.path.abspath(os.path.dirname(file_path))):
@@ -87,8 +89,8 @@ class AppLog(object):
         else:
             raise p_exception.DirectoryNotFound(file_path)
     
-    def _handle2screen(self):
-        """ console 打印Info级别日志
+    def to_console(self):
+        """ 添加 控制台 日志， 打印Info级别日志
         :return:
         """
         ch = logging.StreamHandler()
@@ -116,11 +118,17 @@ class AppLog(object):
 
 
 if __name__ == '__main__':
-    console = AppLog(logger_name="TestApp1").get_logger()
+    alg = AppLog(logger_name="TestApp1")
+    console = alg.get_logger()
     console.debug("console debug")
     console.info("console info")
     console.warning("console warning")
     console.error("console error")
+    alg.to_file(file_path=r"D:\auto\buffer\test_sdfsdf_20240403.log")
+    console.debug("console debug - to file")
+    console.info("console info - to file")
+    console.warning("console warning - to file")
+    console.error("console error - to file")
 
     logger = AppLog(logger_name="TestApp2", log_file=r"D:\auto\buffer\test_sdfsdf_20240403.log").get_logger()
     logger.debug("logger debug")
