@@ -81,6 +81,11 @@ class AppLog(object):
         """ 添加文件日志 记录Debug级别日志
         :return:
         """
+
+        # 确保在添加新的文件句柄之前移除旧的文件句柄
+        tmp = [hd for hd in self._logger.handlers if not isinstance(hd, logging.FileHandler)]
+        self._logger.handlers = tmp
+
         if os.path.isdir(os.path.abspath(os.path.dirname(file_path))):
             fh = logging.FileHandler(file_path, mode='a')
             fh.setLevel(logging.DEBUG)
@@ -93,6 +98,12 @@ class AppLog(object):
         """ 添加 控制台 日志， 打印Info级别日志
         :return:
         """
+
+        # 确保在添加新的控制台句柄之前移除旧的控制台句柄
+        tmp = [hd for hd in self._logger.handlers if not isinstance(hd, logging.StreamHandler)
+               or isinstance(hd, logging.FileHandler)]
+        self._logger.handlers = tmp
+
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
         # if self.has_color:
@@ -124,15 +135,16 @@ if __name__ == '__main__':
     console.info("console info")
     console.warning("console warning")
     console.error("console error")
-    alg.to_file(file_path=r"D:\auto\buffer\test_sdfsdf_20240403.log")
+
+    alg.to_file(file_path=r"D:\auto\buffer\test_sdfsdf_0.log")  # 没有记录
+    alg.to_file(file_path=r"D:\auto\buffer\test_sdfsdf_1.log")  # 有记录
     console.debug("console debug - to file")
     console.info("console info - to file")
     console.warning("console warning - to file")
     console.error("console error - to file")
 
-    logger = AppLog(logger_name="TestApp2", log_file=r"D:\auto\buffer\test_sdfsdf_20240403.log").get_logger()
+    logger = AppLog(logger_name="TestApp1", log_file=r"D:\auto\buffer\test_sdfsdf_2.log").get_logger()
     logger.debug("logger debug")
     logger.info("logger info")
     logger.warning("logger warning")
     logger.error("logger error")
-
