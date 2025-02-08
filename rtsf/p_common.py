@@ -8,7 +8,6 @@ import glob
 import zipfile
 import importlib
 import types
-import imp
 import sys
 import os
 import io
@@ -511,6 +510,7 @@ class ModuleUtils(object):
         if p_compat.is_py3:
             imported_module = importlib.machinery.SourceFileLoader('module_name', file_path).load_module()
         elif p_compat.is_py2:
+            import imp
             imported_module = imp.load_source('module_name', file_path)
         else:
             raise RuntimeError("Neither Python 3 nor Python 2.")
