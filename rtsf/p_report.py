@@ -7,9 +7,10 @@ import time
 import codecs
 from jinja2 import Template
 from rtsf import p_compat
-from rtsf.p_applog import logger
+from rtsf.p_applog import AppLog
 from rtsf.p_common import FileSystemUtils,DateTimeUtils
 from rtsf import __about__
+logger = AppLog(logger_name="rtsf.p_report").get_logger()
 
 
 class HtmlReporter(object):
@@ -164,7 +165,7 @@ class HtmlReporter(object):
                 summary["end_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(et))
                 summary["duration_seconds"] = float("%.2f" % (et - st))
             except Exception as _:
-                logger.log_warning("Will set 'start_at' and 'end_at' to 'None'")
+                logger.warning("Will set 'start_at' and 'end_at' to 'None'")
                 (summary["start_time"], summary["end_time"], summary["duration_seconds"]) = (None, None, None)
                     
             if summary["fail_cases_num"] > 0:

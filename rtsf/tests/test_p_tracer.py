@@ -30,27 +30,28 @@ class TestTracer(unittest.TestCase):
     
     def test_app_log_with_screen_handler(self):
         tracer = Tracer(logger_name="app_log1", dir_name=self.results_path)
-        tracer.setup_logger("debug", logger_name="app_log1")
+        # tracer.setup_logger("debug", logger_name="app_log1")
+        logger = tracer.get_logger()
+        logger.debug("默认的调试信息")
+        logger.info("虚惊一场，提示信息")
+        logger.warning("尼玛 报了警告")
+        logger.error("靠，又一个小错误")
+        logger.critical("尼玛 报了严重的错误")
         
-        tracer.log_debug("默认的调试信息")
-        tracer.log_info("虚惊一场，提示信息")
-        tracer.log_warning("尼玛 报了警告")
-        tracer.log_error("靠，又一个小错误")
-        tracer.log_critical("尼玛 报了严重的错误")
-        
-        self.assertEqual(len(tracer.logger.handlers), 1)
+        self.assertEqual(1, len(logger.handlers))
     
     def test_app_log_with_file_handler(self):
-        tracer = Tracer(logger_name="app_log2", dir_name=self.results_path)
-        tracer.setup_logger("debug", log_file=self.app_log_file, logger_name="app_log2")
+        tracer = Tracer(logger_name="app_log2", dir_name=self.results_path, log_file=self.app_log_file)
+        # tracer.to_file()
+        # tracer.setup_logger("debug", log_file=self.app_log_file, logger_name="app_log2", )
+        logger = tracer.get_logger()
+        logger.debug("默认的调试信息")
+        logger.info("虚惊一场，提示信息")
+        logger.warning("尼玛 报了警告")
+        logger.error("靠，又一个小错误")
+        logger.critical("尼玛 报了严重的错误")
         
-        tracer.log_debug("默认的调试信息")
-        tracer.log_info("虚惊一场，提示信息")
-        tracer.log_warning("尼玛 报了警告")
-        tracer.log_error("靠，又一个小错误")
-        tracer.log_critical("尼玛 报了严重的错误")
-        
-        self.assertEqual(len(tracer.logger.handlers), 1)
+        self.assertEqual(2, len(logger.handlers))
         
     def test_no_trace(self):
         tracer = Tracer(logger_name="case_log", dir_name=self.results_path)

@@ -5,7 +5,7 @@ import os
 import re
 import random
 import ast
-from rtsf.p_applog import logger
+from rtsf.p_applog import AppLog
 from rtsf import p_exception,p_compat
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils,FileUtils
 from rtsf.p_compat import numeric_types,builtin_str
@@ -13,6 +13,7 @@ from rtsf.p_compat import numeric_types,builtin_str
 variable_regexp = r"\$([\w_]+)"
 function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
 function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-_ =,]*)\)$")
+logger = AppLog(logger_name="rtsf.p_testcase").get_logger()
 
 
 def extract_variables(content):
@@ -149,9 +150,9 @@ def substitute_variables_with_mapping(content, mapping):
         return substituted_data
 
     # content is in string format here
-    logger.log_debug(u"Will substitute: {} with {}".format(content, mapping))
+    logger.debug(u"Will substitute: {} with {}".format(content, mapping))
     for var, value in mapping.items():        
-        logger.log_debug(u"\t: {} - {}".format(content, {var:value}))
+        logger.debug(u"\t: {} - {}".format(content, {var:value}))
         if content == var:
             # content is a variable
             content = value
@@ -324,7 +325,7 @@ class TestCaseParser(object):
 
             if func_content == content:
 
-                logger.log_debug(u"eval functions result: {} -> {}".format(func_content, eval_value))
+                logger.debug(u"eval functions result: {} -> {}".format(func_content, eval_value))
 
                 # content is a variable
                 content = eval_value
@@ -337,7 +338,7 @@ class TestCaseParser(object):
                     p_compat.str(eval_value), 1
                 )
 
-                logger.log_debug(u"eval functions result: {} -> {}".format(tmp, content))
+                logger.debug(u"eval functions result: {} -> {}".format(tmp, content))
 
         return content
 
@@ -349,7 +350,7 @@ class TestCaseParser(object):
 
             if "${}".format(variable_name) == content:
 
-                logger.log_debug(u"eval variables result: ${} -> {}".format(variable_name, variable_value))
+                logger.debug(u"eval variables result: ${} -> {}".format(variable_name, variable_value))
 
                 # content is a variable
                 content = variable_value
@@ -359,7 +360,7 @@ class TestCaseParser(object):
                 # content contains one or several variables
                 content = content.replace("${}".format(variable_name),p_compat.str(variable_value), 1)
 
-                logger.log_debug(u"eval variables result: {} -> {}".format(tmp, content))
+                logger.debug(u"eval variables result: {} -> {}".format(tmp, content))
 
         return content
 
@@ -469,7 +470,7 @@ class YamlCaseLoader(object):
             func_name = function_meta["func_name"]
 
             if func_name in YamlCaseLoader.overall_def_dict["api"]:
-                logger.log_warning("API definition duplicated: {}".format(func_name))
+                logger.warning("API definition duplicated: {}".format(func_name))
 
             api_dict["function_meta"] = function_meta
             YamlCaseLoader.overall_def_dict["api"][func_name] = api_dict
@@ -491,7 +492,7 @@ class YamlCaseLoader(object):
 
         try:
             test_cases = FileUtils.load_file(yaml_file)
-            logger.log_debug(u"Yaml raw dict: {}".format(test_cases))
+            logger.debug(u"Yaml raw dict: {}".format(test_cases))
 
             for item in test_cases:
                 if not isinstance(item, dict) or len(item) != 1:
@@ -521,23 +522,23 @@ class YamlCaseLoader(object):
                         ref_call = test_block["api"]
                         def_block = YamlCaseLoader._get_block_by_name(ref_call, "api")
                         YamlCaseLoader._override_block(def_block, test_block)
-                        logger.log_debug(u"merged api block: {}".format(test_block))
+                        logger.debug(u"merged api block: {}".format(test_block))
                         testset["cases"].append(test_block)
 
                     elif "suite" in test_block:
                         ref_call = test_block["suite"]
                         block = YamlCaseLoader._get_block_by_name(ref_call, "suite")
-                        logger.log_debug(u"extend suite block: {}".format(block["cases"]))
+                        logger.debug(u"extend suite block: {}".format(block["cases"]))
                         testset["cases"].extend(block["cases"])
 
                     else:
                         testset["cases"].append(test_block)
 
                 else:
-                    logger.log_warning("Unexpected block key: '{0}' in '{1}', should only be ['project' or 'case']".format(key, yaml_file))
+                    logger.warning("Unexpected block key: '{0}' in '{1}', should only be ['project' or 'case']".format(key, yaml_file))
 
         except:
-            logger.log_error(CommonUtils.get_exception_error())
+            logger.error(CommonUtils.get_exception_error())
         finally:
             return testset
 
@@ -589,7 +590,7 @@ class YamlCaseLoader(object):
                 testcases_list = []
 
         else:
-            logger.log_error(u"file not found: {}".format(path))
+            logger.error(u"file not found: {}".format(path))
             testcases_list = []
 
         YamlCaseLoader.testcases_cache_mapping[path] = testcases_list
@@ -616,11 +617,11 @@ class YamlCaseLoader(object):
                 continue
 
             args_mapping[item] = call_args[index]
-            logger.log_info(u"{0} define： {1}={2}".format(ref_type.capitalize(), item,call_args[index]))
+            logger.info(u"{0} define： {1}={2}".format(ref_type.capitalize(), item,call_args[index]))
 
         if args_mapping:
             block = substitute_variables_with_mapping(block, args_mapping)
-            logger.log_info(u"Substitute variables with mapping finished.")
+            logger.info(u"Substitute variables with mapping finished.")
 
         return block
 

@@ -6,7 +6,7 @@ import shutil
 import unittest
 from rtsf.p_testcase import YamlCaseLoader, TestCaseParser, substitute_variables_with_mapping,parse_project_data
 from rtsf.p_common import FileSystemUtils
-from rtsf.p_applog import logger
+from rtsf.p_applog import AppLog
 
 
 class TestPublicFuction(unittest.TestCase):

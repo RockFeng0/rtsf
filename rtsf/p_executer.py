@@ -7,10 +7,11 @@ import unittest
 import threading
 import multiprocessing
 from functools import partial
-from rtsf.p_applog import logger
+from rtsf.p_applog import AppLog
 from rtsf.p_tracer import Tracer
 from rtsf.p_testcase import YamlCaseLoader, parse_project_data
 from rtsf import p_testcase, p_compat, p_exception
+logger = AppLog(logger_name="rtsf.p_executer").get_logger()
 
 
 class TestCase(unittest.TestCase):
