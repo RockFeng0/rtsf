@@ -69,11 +69,11 @@ setup(
     description=__about__.__short_desc__,
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author=__about__.__autor__,
+    author=__about__.__author__,
     author_email=__about__.__author_email__,
     url=__about__.HOME_PAGE,
     license=__about__.__license__,
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
+    python_requires='>=3.6, <4',
     packages=find_packages(exclude=()),
     package_data={
         'rtsf': ["templates/*"],
