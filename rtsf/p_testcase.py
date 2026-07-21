@@ -6,9 +6,8 @@ import re
 import random
 import ast
 from rtsf.p_applog import AppLog
-from rtsf import p_exception,p_compat
+from rtsf import p_exception
 from rtsf.p_common import FileSystemUtils,CommonUtils,ModuleUtils,FileUtils
-from rtsf.p_compat import numeric_types,builtin_str
 
 variable_regexp = r"\$([\w_]+)"
 function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
@@ -128,7 +127,7 @@ def substitute_variables_with_mapping(content, mapping):
     if isinstance(content, bool):
         return content
 
-    if isinstance(content, (numeric_types, type)):
+    if isinstance(content, (int, float, type)):
         return content
 
     if not content:
@@ -158,9 +157,9 @@ def substitute_variables_with_mapping(content, mapping):
             content = value
         else:
             if not isinstance(value, str):
-                value = builtin_str(value)
+                value = str(value)
             
-            if isinstance(content, builtin_str):
+            if isinstance(content, str):
                 content = content.replace(var, value)
 
     return content
@@ -246,6 +245,7 @@ class TestCaseParser(object):
         csv_content_list = FileUtils.load_file(parameter_file_path)
 
         if fetch_method.lower() == "random":
+            csv_content_list = csv_content_list.copy()
             random.shuffle(csv_content_list)
 
         return csv_content_list
@@ -293,7 +293,7 @@ class TestCaseParser(object):
 
             return evaluated_data
 
-        if isinstance(content, p_compat.basestring):
+        if isinstance(content, (str, bytes)):
 
             # content is in string format here
             content = content.strip()
@@ -335,7 +335,7 @@ class TestCaseParser(object):
                 # content contains one or many variables
                 content = content.replace(
                     func_content,
-                    p_compat.str(eval_value), 1
+                    str(eval_value), 1
                 )
 
                 logger.debug(u"eval functions result: {} -> {}".format(tmp, content))
@@ -356,9 +356,8 @@ class TestCaseParser(object):
                 content = variable_value
             else:
                 tmp = content
-
                 # content contains one or several variables
-                content = content.replace("${}".format(variable_name),p_compat.str(variable_value), 1)
+                content = content.replace("${}".format(variable_name), str(variable_value), 1)
 
                 logger.debug(u"eval variables result: {} -> {}".format(tmp, content))
 
@@ -386,7 +385,7 @@ class YamlCaseLoader(object):
         for idx in range(len(self.testcases)):
             testing = self.testcases[idx]
             case_id = testing.get("testcaseid")
-            case_name = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id,p_compat.str(testing[self.__case_title_field])))
+            case_name = FileSystemUtils.get_legal_filename("%s[%s]" %(case_id, str(testing[self.__case_title_field])))
 
             # executer actions
             execute_actionss = []
@@ -537,7 +536,7 @@ class YamlCaseLoader(object):
                 else:
                     logger.warning("Unexpected block key: '{0}' in '{1}', should only be ['project' or 'case']".format(key, yaml_file))
 
-        except:
+        except Exception:
             logger.error(CommonUtils.get_exception_error())
         finally:
             return testset

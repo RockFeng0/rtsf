@@ -26,7 +26,8 @@ class TestPublicFuction(unittest.TestCase):
         self.assertEqual(result, expected)
         
     def test_parse_project_data(self):
-        file_path = r'data\testcases\data_driver.yaml'
+        test_data_dir = os.path.join(os.path.dirname(__file__), 'data', 'testcases')
+        file_path = os.path.join(test_data_dir, 'data_driver.yaml')
         sequential_data = [
                     {'csv': 'username_password.csv', 'by': 'Sequential'}, 
                     {'csv': 'devices.csv', 'by': 'Sequential'}
@@ -64,11 +65,13 @@ class TestPublicFuction(unittest.TestCase):
 class TestYamlCaseLoader(unittest.TestCase):
     
     def setUp(self):
-        self.case = r'data\testcases\case_model.yaml' 
-        self.case_api_and_suite = r'data\testcases\case_model-api&suite.yaml'
+        self.test_data_dir = os.path.join(os.path.dirname(__file__), 'data', 'testcases')
+        self.case = os.path.join(self.test_data_dir, 'case_model.yaml') 
+        self.case_api_and_suite = os.path.join(self.test_data_dir, 'case_model-api&suite.yaml')
     
     def test_load_api_file(self):
-        YamlCaseLoader.load_api_file(r'data\testcases\dependencies\api\api_model.yaml')
+        api_file = os.path.join(self.test_data_dir, 'dependencies', 'api', 'api_model.yaml')
+        YamlCaseLoader.load_api_file(api_file)
         
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
@@ -81,7 +84,7 @@ class TestYamlCaseLoader(unittest.TestCase):
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["suite"]["test_suite"], True)
                 
     def test_load_dependencies_from_dir(self):
-        YamlCaseLoader.load_dependencies(r'data\testcases')
+        YamlCaseLoader.load_dependencies(self.test_data_dir)
         
         self.assertEqual("test_api" in YamlCaseLoader.overall_def_dict["api"], True)
         self.assertEqual("function_meta" in YamlCaseLoader.overall_def_dict["api"]["test_api"], True)
@@ -139,7 +142,7 @@ class TestTestCaseParser(unittest.TestCase):
     def setUp(self):
         self._variables = {'v1': "hello", "v2": "world", "v3": 123, "v4": 0.1234}
         self._functions = {"f1": lambda: "f1", "f2": lambda: "f2"}
-        self._file_path = r'data\testcases\preference.py'
+        self._file_path = os.path.join(os.path.dirname(__file__), 'data', 'testcases', 'preference.py')
     
     def test_init_variables(self):        
         

@@ -23,11 +23,13 @@ import string
 import itertools
 import csv
 import yaml
+from functools import reduce
 
-from rtsf import p_compat, p_exception
+from rtsf import p_exception
 from collections import OrderedDict
+import configparser
 
-ConfigParser = p_compat.ConfigParser
+ConfigParser = configparser
 
 filesystemencoding = sys.getfilesystemencoding()
 encoding = "utf-8"
@@ -60,7 +62,7 @@ def init_project_env(subject='Automation', proj_path=None, sysencoding="utf-8", 
     if not proj_path:
         try:
             executable_file_path = os.path.dirname(os.path.abspath(inspect.stack()[-1][1]))
-        except:
+        except (IndexError, OSError):
             executable_file_path = os.path.dirname(sys.path[0])
         finally:
             proj_path = executable_file_path
@@ -84,7 +86,8 @@ def init_project_env(subject='Automation', proj_path=None, sysencoding="utf-8", 
             },
         }
 
-    [FileSystemUtils.mkdirs(v) for v in proj_conf["path"].values()]
+    for v in proj_conf["path"].values():
+        FileSystemUtils.mkdirs(v)
     sys.path.append(p) if os.path.isdir(p) else ""
     return proj_conf
 
@@ -104,7 +107,7 @@ class IntelligentWaitUtils(object):
             until_cmd(cmd, save2logfile= r"d:\auto\buffer\t.tmp")
             until_cmd(cmd, end_expects=u"平均 = 0ms", save2logfile= r"d:\auto\buffer\t.tmp")
         """
-        if end_expects and not isinstance(end_expects, p_compat.str):
+        if end_expects and not isinstance(end_expects, str):
             raise Exception("invalide unicode string: '%s'" %end_expects)
 
         lines = []
@@ -140,7 +143,7 @@ class IntelligentWaitUtils(object):
                 value = method()
                 if value:
                     return value
-            except:
+            except Exception:
                 pass
             time.sleep(1)
             if time.time() > end_time:
@@ -156,7 +159,7 @@ class IntelligentWaitUtils(object):
                 value = method()
                 if not value:
                     return value
-            except:
+            except Exception:
                 return True
             time.sleep(1)
             if time.time() > end_time:
@@ -173,7 +176,7 @@ class IntelligentWaitUtils(object):
                 sk.shutdown(2)
                 sk.close()
                 return True
-            except:
+            except (ConnectionRefusedError, OSError):
                 pass
             time.sleep(1)
             if time.time() > end_time:
@@ -377,7 +380,7 @@ class FileSystemUtils(object):
         @return:  Return an unique postfix for the file name
         """
 
-        fn = p_compat.str(fn)
+        fn = str(fn)
 
         if not os.path.exists(fn):
             return fn
@@ -387,7 +390,7 @@ class FileSystemUtils(object):
 
         make_fn = lambda i: os.path.join(path, '%s_%d%s' % (name, i, ext))
 
-        for i in p_compat.xrange(2, sys.maxsize):
+        for i in range(2, sys.maxsize):
             uni_fn = make_fn(i)
             if not os.path.exists(uni_fn):
                 return uni_fn
@@ -401,7 +404,7 @@ class FileSystemUtils(object):
             try:
                 os.remove(file_path)
                 return file_path
-            except:
+            except OSError:
                 return FileSystemUtils.add_unique_postfix(file_path)
         else:
             return file_path
@@ -411,7 +414,7 @@ class ZipUtils(object):
 
     @staticmethod
     def mkzip(source_dir, output_filename):
-        """Usage:
+        r"""Usage:
             p = r'D:\auto\env\ttest\ins\build\lib\rock4\softtest\support'
             mkzip(os.path.join(p, "appiumroot"),os.path.join(p, "appiumroot.zip"))
             unzip(os.path.join(p, "appiumroot.zip"),os.path.join(p, "appiumroot2"))
@@ -507,14 +510,9 @@ class ModuleUtils(object):
     def get_imported_module_from_file(file_path):
         """ import module from python file path and return imported module
         """
-        if p_compat.is_py3:
-            imported_module = importlib.machinery.SourceFileLoader('module_name', file_path).load_module()
-        elif p_compat.is_py2:
-            import imp
-            imported_module = imp.load_source('module_name', file_path)
-        else:
-            raise RuntimeError("Neither Python 3 nor Python 2.")
-
+        spec = importlib.util.spec_from_file_location('module_name', file_path)
+        imported_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(imported_module)
         return imported_module
 
     @staticmethod
@@ -564,7 +562,7 @@ class SetupUtils(object):
 
     @staticmethod
     def find_data_files(source, target, patterns, isiter=False):
-        """Locates the specified data-files and returns the matches;
+        r"""Locates the specified data-files and returns the matches;
             filesystem tree for setup's data_files in setup.py
             Usage:
                 data_files = find_data_files(r"C:\Python27\Lib\site-packages\numpy\core","numpy/core",["*.dll","*.pyd"])
@@ -851,7 +849,7 @@ def unseqfy(strs):
         if len(raw) == 2:
             try:
                 int(raw[0])
-            except:
+            except ValueError:
                 result = "".join([result, i, "\n"])
             else:
                 result = "".join([result, raw[1], "\n"])
@@ -885,7 +883,7 @@ def stepfy(strs):
     """
 
     result = {}
-    prog_step = re.compile("^\d+\.")
+    prog_step = re.compile(r"^\d+\.")
 
     if not strs:
         return result
@@ -917,7 +915,7 @@ def unstepfy(sdict):
         tmp = CommonUtils.get_sorted_list(result)
         f = lambda x,y: x + y
 
-        return p_compat.reduce(f, tmp)
+        return reduce(f, tmp)
 
 
 def map_function(func_str, fw_action_addtion=None, bw_action_addtion=None, alias_func=None):
@@ -928,7 +926,7 @@ def map_function(func_str, fw_action_addtion=None, bw_action_addtion=None, alias
         print map_function('set("login",a="good",b=Test())',"action_steps_","_for_upd");# -> action_steps_set_for_upd("login",a="good",b=Test())
     """
 
-    split_action_value = re.compile("^(\w+)(\((.*)\)$)?")
+    split_action_value = re.compile(r"^(\w+)(\((.*)\)$)?")
     matched   = split_action_value.match(func_str)
 
     if matched:

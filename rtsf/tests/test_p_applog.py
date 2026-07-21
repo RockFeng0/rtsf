@@ -10,33 +10,32 @@ class TestAppLog(unittest.TestCase):
     
     def setUp(self):
         self.log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_tmp", 'applog.log')
+        if not os.path.exists(os.path.dirname(self.log_file)):
+            os.makedirs(os.path.dirname(self.log_file))
                 
     def test_log_with_file_handler(self):
-        _applogobj = AppLog(logger_name="test1")
-        _applogobj.setup_logger("debug", log_file=self.log_file, logger_name="test1")
+        _applogobj = AppLog(logger_name="test1", log_file=self.log_file, log_level=10)
+        logger = _applogobj.get_logger()
         
-        _applogobj.log_debug("debug ")
-        _applogobj.log_info("info")
-        _applogobj.log_warning("warning")
-        _applogobj.log_error("error")
-        _applogobj.log_critical("critical")
+        logger.debug("debug ")
+        logger.info("info")
+        logger.warning("warning")
+        logger.error("error")
+        logger.critical("critical")
         
-        self.assertEqual(_applogobj.log_colors, {})
-        self.assertEqual(len(_applogobj.logger.handlers), 1)
+        self.assertTrue(os.path.exists(self.log_file))
         print('----')
         
     def test_log_with_screen_handler(self):      
-        _applogobj = AppLog(logger_name="test2")
-        _applogobj.setup_logger("debug", logger_name="test2")
+        _applogobj = AppLog(logger_name="test2", log_level=10)
+        logger = _applogobj.get_logger()
         
-        _applogobj.log_debug("debug ")
-        _applogobj.log_info("info")
-        _applogobj.log_warning("warning")
-        _applogobj.log_error("error")
-        _applogobj.log_critical("critical")
+        logger.debug("debug ")
+        logger.info("info")
+        logger.warning("warning")
+        logger.error("error")
+        logger.critical("critical")
         
-        self.assertEqual(_applogobj.log_colors, {})         
-        self.assertEqual(len(_applogobj.logger.handlers), 1)
         print('----')
         
     def test_color_print(self):

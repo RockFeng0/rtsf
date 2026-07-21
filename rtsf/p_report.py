@@ -6,7 +6,6 @@ import io
 import time
 import codecs
 from jinja2 import Template
-from rtsf import p_compat
 from rtsf.p_applog import AppLog
 from rtsf.p_common import FileSystemUtils,DateTimeUtils
 from rtsf import __about__
@@ -46,32 +45,34 @@ class HtmlReporter(object):
 #         FileSystemUtils.mkdirs(self.screen_shot_path)
         
         log_file = self.__get_log_file()
-        with codecs.open(log_file, "a", "utf-8") as f:
-            f.write(u"\n**************  %s [%s]  ***************\n" %(u"Case Log From Rock4 Test Service Framework",self.meta_data['case_name']))
+        self._log_file_handle = codecs.open(log_file, "a", "utf-8")
+        self._log_file_handle.write(u"\n**************  %s [%s]  ***************\n" %(u"Case Log From Rock4 Test Service Framework",self.meta_data['case_name']))
     
     def stop_test(self):
         self.meta_data["end_at"] = time.time()
+        if hasattr(self, '_log_file_handle') and self._log_file_handle:
+            self._log_file_handle.close()
+            self._log_file_handle = None
         HtmlReporter.add_report_data(list_all=self.summary, **self.meta_data)
             
     def step_info(self, info, msg):
         
-        if isinstance(msg, p_compat.bytes):            
+        if isinstance(msg, bytes):            
             try:
                 unicode_msg = msg.decode('utf-8')                
-            except:
+            except UnicodeDecodeError:
                 raise Exception("Log message not unicode or utf-8.")
         else:
             unicode_msg = msg
         
         info = info.upper()
-        log_file = self.__get_log_file()
-        with codecs.open(log_file, "a", "utf-8") as f:
+        if hasattr(self, '_log_file_handle') and self._log_file_handle:
             if info == "SECTION":      
-                f.write(u"\n%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info, unicode_msg))
+                self._log_file_handle.write(u"\n%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info, unicode_msg))
             elif info in ["NORMAL","STEP","PASS"]:
-                f.write(u"%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info,unicode_msg))
+                self._log_file_handle.write(u"%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info,unicode_msg))
             elif info in ["ERROR","FAIL"]:
-                f.write(u"%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info,unicode_msg))
+                self._log_file_handle.write(u"%-20s\t%-10s\t%s\n" %(DateTimeUtils.get_stamp_datetime_coherent(),info,unicode_msg))
                 self.meta_data["status"] = "Fail"
 
     def __get_log_file(self):
@@ -188,7 +189,9 @@ class HtmlReporter(object):
         return all_summary
             
     @staticmethod
-    def add_report_data(list_all=[], module_name="TestModule", **kwargs):
+    def add_report_data(list_all=None, module_name="TestModule", **kwargs):
+        if list_all is None:
+            list_all = []
         """ add report data to a list
             @param list_all: a list which save the report data
             @param module_name: test set name or test module name
@@ -225,7 +228,8 @@ class HtmlReporter(object):
                 continue
             
             for case in module["TestCases"]:
-                if raw_case_name == case["raw_case_name"]:
+                # if raw_case_name == case["raw_case_name"]:
+                if case_name == case["case_name"]:
                     case.update(_case_report)
                     return list_all
             

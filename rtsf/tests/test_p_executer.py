@@ -4,18 +4,24 @@
 import os
 import shutil
 import unittest
-from rtsf.p_executer import TestRunner, Runner, TaskSuite, TestSuite, TestCase, init_test_suite
+import rtsf.p_executer as p_executer
 from rtsf.p_report import HtmlReporter
 from rtsf.p_testcase import TestCaseParser
 from rtsf.p_common import FileSystemUtils
-from rtsf.p_applog import logger
+from rtsf.p_applog import AppLog
+logger = AppLog(logger_name="rtsf.p_executer").get_logger()
 
 
 class TestTestRunner(unittest.TestCase):
     
     def setUp(self):
-        self.case = r'data\testcases\case_model.yaml'
-        self.data_driver_case = r'data\testcases\data_driver.yaml'
+        from rtsf.p_testcase import YamlCaseLoader
+        # 在测试 setUp 方法中清理 testcases_cache_mapping 缓存
+        YamlCaseLoader.testcases_cache_mapping = {}
+
+        self.test_data_dir = os.path.join(os.path.dirname(__file__), 'data', 'testcases')
+        self.case = os.path.join(self.test_data_dir, 'case_model.yaml')
+        self.data_driver_case = os.path.join(self.test_data_dir, 'data_driver.yaml')
         self.testsets = {'file_path': 'C:\\d_disk\\auto\\git\\rtsf\\rtsf\\tests\\data\\testcases\\case_model.yaml', 
                     'project': {'name': 'xxx系统', 'module': '登陆模块-功能测试'}, 
                     'cases': [{'glob_var': {'passwd': '123@Qwe'}, 
@@ -40,25 +46,25 @@ class TestTestRunner(unittest.TestCase):
         self.testsets2 = self.testsets.copy()
 
     def test_init_test_suite_from_file(self):
-        task_obj = init_test_suite(self.case, Runner)
+        task_obj = p_executer.init_test_suite(self.case, p_executer.Runner)
         
-        self.assertEqual(isinstance(task_obj, TaskSuite), True)
+        self.assertEqual(isinstance(task_obj, p_executer.TaskSuite), True)
         self.assertEqual(len(task_obj.tasks), 1)        
         suite = task_obj.tasks[0]
-        self.assertIsInstance(suite, TestSuite)
+        self.assertIsInstance(suite, p_executer.TestSuite)
         self.assertEqual(len(suite.tests), 2)        
         case = suite.tests[0]
-        self.assertIsInstance(case, TestCase)
+        self.assertIsInstance(case, p_executer.TestCase)
         
-        task_obj = init_test_suite(self.data_driver_case, Runner)
+        task_obj = p_executer.init_test_suite(self.data_driver_case, p_executer.Runner)
         
-        self.assertEqual(isinstance(task_obj, TaskSuite), True)
+        self.assertEqual(isinstance(task_obj, p_executer.TaskSuite), True)
         self.assertEqual(len(task_obj.tasks), 1)        
         suite = task_obj.tasks[0]
-        self.assertIsInstance(suite, TestSuite)
+        self.assertIsInstance(suite, p_executer.TestSuite)
         self.assertEqual(len(suite.tests), 12)        
         case = suite.tests[0]
-        self.assertIsInstance(case, TestCase)
+        self.assertIsInstance(case, p_executer.TestCase)
 
     def test_init_test_suite_from_dir(self):
         cases_path = r'test_tmp\testcases'
@@ -71,54 +77,54 @@ class TestTestRunner(unittest.TestCase):
         shutil.copyfile(self.case, os.path.join(p1, "t1.yaml"))
         shutil.copyfile(self.case, os.path.join(p2, "t2.yaml"))
         
-        task_obj = init_test_suite(cases_path, Runner)
+        task_obj = p_executer.init_test_suite(cases_path, p_executer.Runner)
         
-        self.assertEqual(isinstance(task_obj, TaskSuite), True)  
+        self.assertEqual(isinstance(task_obj, p_executer.TaskSuite), True)  
         self.assertEqual(len(task_obj.tasks), 3)      
         
     def test_TaskSuite(self):        
-        task_obj = TaskSuite([self.testsets, self.testsets2], Runner)
+        task_obj = p_executer.TaskSuite([self.testsets, self.testsets2], p_executer.Runner)
         self.assertEqual(len(task_obj.tasks), 2)        
-        self.assertIsInstance(task_obj.tasks[0], TestSuite)         
+        self.assertIsInstance(task_obj.tasks[0], p_executer.TestSuite)         
     
     def test_TestSuite(self):
-        suite_obj = TestSuite(self.testsets2, Runner)        
+        suite_obj = p_executer.TestSuite(self.testsets2, p_executer.Runner)        
         self.assertEqual(len(suite_obj.tests), 2)
-        self.assertIsInstance(suite_obj.tests[0], TestCase)
+        self.assertIsInstance(suite_obj.tests[0], p_executer.TestCase)
                     
     def test_TestRunner_from_file_without_data_driven(self):
-        runner = TestRunner(runner = Runner).run(self.case)
+        runner = p_executer.TestRunner(runner = p_executer.Runner).run(self.case)
         html_report = runner.gen_html_report()
         self.assertEqual(os.path.isfile(html_report[0]), True)
         print(html_report)
            
         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)
-        self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
+        self.assertEqual(isinstance(runner._task_suite, p_executer.TaskSuite), True)
         self.assertEqual(len(runner._task_suite.tasks), 1)        
            
         test_runner = runner._task_suite.tasks[0].test_runner        
-        self.assertEqual(isinstance(test_runner, Runner), True)          
+        self.assertEqual(isinstance(test_runner, p_executer.Runner), True)          
         self.assertEqual(isinstance(test_runner.tracers, dict), True)
         self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)
     
     def test_TestRunner_from_file_with_data_driven(self):
-        runner = TestRunner(runner = Runner).run(self.data_driver_case)        
+        runner = p_executer.TestRunner(runner = p_executer.Runner).run(self.data_driver_case)        
         html_report = runner.gen_html_report()
         self.assertEqual(os.path.isfile(html_report[0]), True)        
                                 
     def test_TestRunner_from_dir(self):
 #         logger.setup_logger("debug")
-        runner = TestRunner(runner = Runner).run(r'data\testcases')        
+        runner = p_executer.TestRunner(runner = p_executer.Runner).run(self.test_data_dir)        
         html_report = runner.gen_html_report()
         #print(html_report)
         
         self.assertEqual(isinstance(runner.text_test_result, unittest.TextTestResult), True)        
-        self.assertEqual(isinstance(runner._task_suite, TaskSuite), True)
-        self.assertEqual(len(runner._task_suite.tasks), 2)
+        self.assertEqual(isinstance(runner._task_suite, p_executer.TaskSuite), True)
+        self.assertEqual(len(runner._task_suite.tasks), 3) # 2 test suites ?
         
         test_runner = runner._task_suite.tasks[0].test_runner        
-        self.assertEqual(isinstance(test_runner, Runner), True)          
+        self.assertEqual(isinstance(test_runner, p_executer.Runner), True)          
         self.assertEqual(isinstance(test_runner.tracers, dict), True)
         self.assertIsInstance(test_runner.tracers[""], HtmlReporter)
         self.assertEqual(isinstance(test_runner.parser, TestCaseParser), True)

@@ -7,8 +7,12 @@ import logging
 from rtsf import p_exception
 
 from colorama import Back, Fore, Style, init
-from colorlog import ColoredFormatter
 init(autoreset=True)
+
+try:
+    from colorlog import ColoredFormatter
+except ImportError:
+    ColoredFormatter = None
 
 
 def coloring(msg, color="WHITE"):

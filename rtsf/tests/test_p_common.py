@@ -7,7 +7,7 @@ import types
 import shutil
 import unittest
 
-from rtsf import p_compat
+from functools import reduce
 from rtsf.p_common import CommonUtils
 from rtsf.p_common import FileSystemUtils
 from rtsf.p_common import FileUtils
@@ -76,8 +76,9 @@ passwd = 123456
 class TestFileUtils(unittest.TestCase):
     
     def setUp(self):
-        self.case = r'data\testcases\case_model.yaml' 
-        self.csv = r'data\testcases\username_password.csv'
+        self.test_data_dir = os.path.join(os.path.dirname(__file__), 'data', 'testcases')
+        self.case = os.path.join(self.test_data_dir, 'case_model.yaml') 
+        self.csv = os.path.join(self.test_data_dir, 'username_password.csv')
         
     def test_load_folder_files(self):        
         
@@ -364,7 +365,7 @@ class TestProgressBarUtils(unittest.TestCase):
     def test_echo_size(self):
         f = lambda x, y: x+y
         ldata = range(10)
-        toBeTransferred = p_compat.reduce(f, range(10))
+        toBeTransferred = reduce(f, range(10))
         
         progress = ProgressBarUtils("refresh", toBeTransferred=toBeTransferred, unit="KB", chunk_size=1.0, run_status="正在下载", fin_status="下载完成")        
         for i in ldata:
@@ -374,7 +375,7 @@ class TestProgressBarUtils(unittest.TestCase):
     def test_echo_percent(self):
         f=lambda x, y: x+y
         ldata = range(10)
-        toBeTransferred = p_compat.reduce(f, range(10))
+        toBeTransferred = reduce(f, range(10))
         
         progress = ProgressBarUtils("viewbar", toBeTransferred=toBeTransferred, run_status="正在下载", fin_status="下载完成")    
         for i in ldata:  

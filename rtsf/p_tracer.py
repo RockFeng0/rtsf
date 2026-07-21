@@ -67,13 +67,13 @@ class Tracer(HtmlReporter, AppLog):
     def _switch_on(self):
         self.__clear = False
             
-    def __deal_str(self,strs):
-        if isinstance(strs, str):
+    def __deal_str(self, strs):
+        if isinstance(strs, bytes):
             try:
                 return strs.decode("utf-8")
-            except:
-                pass
-        return strs    
-
+            except UnicodeDecodeError:
+                return strs.decode("utf-8", errors="replace")
+        return strs
+                
 
 tracer = Tracer()

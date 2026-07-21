@@ -10,7 +10,7 @@ from functools import partial
 from rtsf.p_applog import AppLog
 from rtsf.p_tracer import Tracer
 from rtsf.p_testcase import YamlCaseLoader, parse_project_data
-from rtsf import p_testcase, p_compat, p_exception
+from rtsf import p_testcase, p_exception
 logger = AppLog(logger_name="rtsf.p_executer").get_logger()
 
 
@@ -80,13 +80,11 @@ class TestSuite(unittest.TestSuite):
                 self._add_test_to_suite(testcase_dict["name"], test_runner, testcase_dict, data_variables_dict)
                              
     def _add_test_to_suite(self, testcase_name, test_runner, testcase_dict, variables):
-        if p_compat.is_py3:
-            TestCase.runTest.__doc__ = testcase_name
-        else:
-            TestCase.runTest.__func__.__doc__ = testcase_name
+        TestCase.runTest.__doc__ = testcase_name
         
         test = TestCase(test_runner, testcase_dict, variables)
-        [self.addTest(test) for _ in range(int(testcase_dict.get("times", 1)))]        
+        for _ in range(int(testcase_dict.get("times", 1))):
+            self.addTest(test)        
         
     @property
     def tests(self):                
@@ -178,7 +176,7 @@ class TestRunner(object):
         try:
             self._task_suite =init_test_suite(path_or_testsets, self._runner_cls)
         except p_exception.TestcaseNotFound:
-            logger.log_error("Testcases not found in {}".format(path_or_testsets))
+            logger.error("Testcases not found in {}".format(path_or_testsets))
             sys.exit(1)
 
         self.text_test_result = self.runner.run(self._task_suite)        
@@ -245,7 +243,7 @@ class Runner(object):
         
         case_name = parser.eval_content_with_bind_actions(testcase_dict.get("name", u'rtsf'))
         reporter.start(self.proj_info["module"], case_name, testcase_dict.get("responsible", u"rock feng"), testcase_dict.get("tester", u"rock feng"))
-        reporter.log_debug(u"===== run_test\n\t{}".format(testcase_dict))
+        logger.debug(u"===== run_test\n\t{}".format(testcase_dict))
         
         reporter.section(u"------------section ok")
         reporter.step(u"step ok")
@@ -288,9 +286,9 @@ class Runner(object):
         @param iterables:  iterable objects
         """
         
-        f = lambda x: threading.Thread(target=func, args=(x,))
-        threads = map(f, iterables)
+        threads = [threading.Thread(target=func, args=(x,)) for x in iterables]
         for thread in threads:
             thread.setDaemon(True)
             thread.start()
+        for thread in threads:
             thread.join()
