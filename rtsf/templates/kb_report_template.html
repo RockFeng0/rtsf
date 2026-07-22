@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试执行报告 - {{ project_name }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1E40AF;
+            --primary-light: #3B82F6;
+            --primary-dark: #1E3A8A;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --info: #6366F1;
+            --bg-main: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --border-color: #E2E8F0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .report-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-card .icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .stat-card.total .icon {
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+        }
+
+        .stat-card.total .icon svg {
+            fill: var(--primary);
+        }
+
+        .stat-card.pass .icon {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        }
+
+        .stat-card.pass .icon svg {
+            fill: var(--success);
+        }
+
+        .stat-card.fail .icon {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+        }
+
+        .stat-card.fail .icon svg {
+            fill: var(--danger);
+        }
+
+        .stat-card.duration .icon {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        }
+
+        .stat-card.duration .icon svg {
+            fill: var(--warning);
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .chart-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .chart-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-item .info-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            min-width: 80px;
+        }
+
+        .info-item .info-value {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .table-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-main);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.15s ease;
+        }
+
+        tr:hover td {
+            background-color: #F8FAFC;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.pass {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.fail {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-badge.pass::before,
+        .status-badge.fail::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-badge.pass::before {
+            background: var(--success);
+        }
+
+        .status-badge.fail::before {
+            background: var(--danger);
+        }
+
+        .case-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.15s ease;
+            cursor: pointer;
+        }
+
+        .case-link:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        .summary-link {
+            cursor: pointer;
+            text-decoration: underline;
+            color: var(--primary);
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+
+        .summary-link:hover {
+            color: var(--primary-light);
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .report-container {
+                padding: 16px;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-card .value {
+                font-size: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .filter-bar {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <header>
+            <h1>测试执行报告</h1>
+            <p class="subtitle">{{ project_name }} - {{ module_name }}</p>
+        </header>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">开始时间</span>
+                <span class="info-value">{{ start_time }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Finished</span>
+                <span class="info-value">{{ end_time }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">执行时长</span>
+                <span class="info-value">{{ duration_seconds }}s</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">首页链接</span>
+                <a href="{{ home_page }}" target="_blank" class="info-value" style="color: var(--primary); text-decoration: none;">查看</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3H21V7H3V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 17H21V21H3V17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 10H21V14H3V10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="value">{{ total_case_num }}</div>
+                <div class="label">总用例数</div>
+            </div>
+            <div class="stat-card pass">
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12L9 16L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="value">{{ pass_cases_num }}</div>
+                <div class="label">通过</div>
+            </div>
+            <div class="stat-card fail">
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="value">{{ fail_cases_num }}</div>
+                <div class="label">失败</div>
+            </div>
+            <div class="stat-card duration">
+                <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="value">{{ '%0.1f' % ((pass_cases_num / total_case_num * 100) if total_case_num > 0 else 0) }}%</div>
+                <div class="label">通过率</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h3>测试结果分布</h3>
+            <div class="chart-container">
+                <canvas id="resultChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="table-header">
+                <h3>测试用例</h3>
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="showAll('All')">全部 ({{ total_case_num }})</button>
+                    <button class="filter-btn" onclick="showAll('Pass')">通过 ({{ pass_cases_num }})</button>
+                    <button class="filter-btn" onclick="showAll('Fail')">失败 ({{ fail_cases_num }})</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="testTable">
+                    <thead>
+                        <tr>
+                            <th>用例名称</th>
+                            <th>状态</th>
+                            <th>责任人</th>
+                            <th>执行者</th>
+                            <th>执行日期</th>
+                            <th>执行时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detail in details %}
+                        <tr class="case-row" data-status="{{ detail.status | lower }}">
+                            <td><a href="{{ detail['linkurl'] }}" target="_blank" class="case-link" onclick="changeHref(this)">{{ detail.raw_case_name }}</a></td>
+                            <td>
+                                <span class="status-badge {{ 'pass' if detail.status | lower == 'pass' else 'fail' }}">
+                                    {{ '通过' if detail.status | lower == 'pass' else '失败' }}
+                                </span>
+                            </td>
+                            <td>{{ detail.resp_tester }}</td>
+                            <td>{{ detail.tester }}</td>
+                            <td>{{ detail.exec_date }}</td>
+                            <td>{{ detail.exec_time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            由 RTSF 测试框架生成 | {{ end_time }}
+        </footer>
+    </div>
+
+    <script>
+        const passCount = {{ pass_cases_num }};
+        const failCount = {{ fail_cases_num }};
+
+        function initChart() {
+            if (typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('resultChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['通过', '失败'],
+                        datasets: [{
+                            data: [passCount, failCount],
+                            backgroundColor: ['#10B981', '#EF4444'],
+                            borderColor: ['#FFFFFF', '#FFFFFF'],
+                            borderWidth: 3,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: {
+                                        size: 14,
+                                        weight: '500'
+                                    },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${context.raw} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+        }
+
+        function showAll(opt) {
+            const rows = document.querySelectorAll('.case-row');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                if (opt === 'All') {
+                    row.style.display = 'table-row';
+                } else if (opt === 'Pass') {
+                    row.style.display = status === 'pass' ? 'table-row' : 'none';
+                } else if (opt === 'Fail') {
+                    row.style.display = status === 'fail' ? 'table-row' : 'none';
+                }
+            });
+        }
+
+        function getUrlParamValue(name) {
+            if (name == null || name == 'undefined') { return null; }
+            var searchStr = decodeURI(location.search);
+
+            var infoIndex = searchStr.indexOf(name + "=");
+            if (infoIndex == -1) { return null; }
+
+            var searchInfo = searchStr.substring(infoIndex + name.length + 1);
+            var tagIndex = searchInfo.indexOf("&");
+            if (tagIndex != -1) { searchInfo = searchInfo.substring(0, tagIndex); }
+            return searchInfo;
+        }
+
+        function changeHref(e) {
+            var searchStr = decodeURI(e.href)
+            var infoIndex = searchStr.indexOf("?task_id=")
+            if (infoIndex == -1) {
+                var new_href = e.href + "?task_id=" + getUrlParamValue("task_id")
+            } else {
+                var new_href = e.href.replace(/\?task_id=.*/, "?task_id=" + getUrlParamValue("task_id"))
+            }
+            e.setAttribute('href', new_href)
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var initialFilter = '{{ 'All' if show_all else 'Summary' }}';
+            if (initialFilter === 'Summary') {
+                document.getElementById('testTable').style.display = 'none';
+            } else {
+                showAll(initialFilter);
+            }
+            initChart();
+        });
+    </script>
+</body>
+</html>
