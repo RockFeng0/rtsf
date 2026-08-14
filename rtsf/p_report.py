@@ -8,7 +8,7 @@ import codecs
 from jinja2 import Template
 from rtsf.p_applog import AppLog
 from rtsf.p_common import FileSystemUtils,DateTimeUtils
-from rtsf import __about__
+
 logger = AppLog(logger_name="rtsf.p_report").get_logger()
 
 
@@ -133,7 +133,7 @@ class HtmlReporter(object):
                         "module_name": module['Name'],
                         "show_all": kwargs.get("show_all",True),
                         "project_name": kwargs.get("proj_name","TestProject"),
-                        "home_page": kwargs.get("home_page",__about__.HOME_PAGE),
+                        "home_page": kwargs.get("home_page","..."),
                         "start_time": "",
                         "end_time": "",
                         "duration_seconds": "",
