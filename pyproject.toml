@@ -1,0 +1,95 @@
+# rtsf - 测试服务框架
+#
+# 构建与发布（推荐方式）:
+#     python -m build                # 构建 sdist + wheel
+#     twine upload dist/*            # 发布到 PyPI
+#     twine check dist/*             # 校验产物（含 README 渲染）
+#     git tag v3.1.0 && git push --tags  # 创建标签； 推送到github
+#
+# 本地开发安装:
+#     pip install -e .               # 可编辑安装
+#     pip install -e .[test]         # 含测试依赖
+#     pip install -e .[dev]          # 含开发工具
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtsf"
+version = "3.1.0"
+description = "a test service framework"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "RockFeng0", email = "281589463@qq.com" },
+]
+keywords = [
+    "test",
+    "requests",
+    "locust",
+    "HTTP",
+    "api",
+    "selenium",
+    "appium",
+    "uiautomation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Testing :: Unit",
+]
+dependencies = [
+    "PyYAML>=5.1",
+    "Jinja2>=2.10",
+    "colorama>=0.4",
+    "colorlog>=4.0",
+    "urllib3>=1.24",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.0",
+    "coverage>=5.0",
+]
+dev = [
+    "black",
+    "flake8",
+    "mypy",
+    "build",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/RockFeng0/rtsf"
+Source = "https://github.com/RockFeng0/rtsf"
+Issues = "https://github.com/RockFeng0/rtsf/issues"
+Changelog = "https://github.com/RockFeng0/rtsf/releases"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = [
+    "tests*",
+    "tests.*",
+    "examples*",
+    "examples.*",
+    "rtsf.tests*",
+    "rtsf.tests.*",
+]
+
+[tool.setuptools.package-data]
+rtsf = ["templates/*.html"]
